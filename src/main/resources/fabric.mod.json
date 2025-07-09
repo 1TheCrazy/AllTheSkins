@@ -1,0 +1,40 @@
+{
+	"schemaVersion": 1,
+	"id": "all-the-skins",
+	"version": "${version}",
+	"name": "All The Skins",
+	"description": "Let's you use any 3D-Model as your skin",
+	"authors": [
+		"1TheCrazy"
+	],
+	"contact": {
+		"sources": "https://github.com/1TheCrazy/AllTheSkins"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/all-the-skins/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"me.onethecrazy.AllTheSkins"
+		],
+		"client": [
+			"me.onethecrazy.AllTheSkinsClient"
+		]
+	},
+	"mixins": [
+		"all-the-skins.mixins.json",
+		{
+			"config": "all-the-skins.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.16.14",
+		"minecraft": "~1.21.7",
+		"java": ">=21",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"another-mod": "*"
+	}
+}
