@@ -3,7 +3,7 @@
 	"package": "me.onethecrazy.mixin.client",
 	"compatibilityLevel": "JAVA_21",
 	"client": [
-		"ExampleClientMixin"
+		"PlayerRenderMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
