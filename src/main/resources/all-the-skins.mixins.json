@@ -1,10 +1,8 @@
 {
-	"required": true,
+	"required": false,
 	"package": "me.onethecrazy.mixin",
 	"compatibilityLevel": "JAVA_21",
-	"mixins": [
-		"ExampleMixin"
-	],
+	"mixins": [],
 	"injectors": {
 		"defaultRequire": 1
 	},
