@@ -1,5 +1,6 @@
 package me.onethecrazy.util;
 
+// Just noticed I never use this :/
 public class VectorMath {
     public static float dot(Float3 a, Float3 b){
         return a.x * b.x + a.y * b.y + a.z * a.z;
