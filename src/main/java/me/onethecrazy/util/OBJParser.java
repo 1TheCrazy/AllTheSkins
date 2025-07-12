@@ -1,5 +1,7 @@
 package me.onethecrazy.util;
 
+import me.onethecrazy.AllTheSkins;
+
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.io.IOException;
@@ -7,7 +9,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 public class OBJParser {
-    public static Optional<List<Vertex>> Parse(String path){
+    public static Optional<List<Vertex>> parse(String path){
         List<Float3> vertexList = new ArrayList<>();
         List<Float3> normalList = new ArrayList<>();
         List<Float2> textureList = new ArrayList<>();
@@ -56,10 +58,15 @@ public class OBJParser {
                     // Skip one element in order to account for the f
                     List<String> faceData = Arrays.stream(line.split(" ")).skip(1).toList();
 
+                    int numVerticies = faceData.size();
+
                     for(String vertexInfo : faceData){
                         Vertex intermediate;
 
                         String[] parts = vertexInfo.split("/");
+
+                        if(parts[0].isBlank() || parts[0].isEmpty())
+                            continue;
 
                         int vIndex = Integer.parseInt(parts[0]);
                         Integer vtIndex = null;
@@ -86,6 +93,10 @@ public class OBJParser {
 
                         filledVerticies.add(intermediate);
                     }
+
+                    if(numVerticies == 3){
+                        filledVerticies.add(filledVerticies.getLast());
+                    }
                 }
             }
         } catch (IOException e) {
@@ -94,4 +105,22 @@ public class OBJParser {
 
         return Optional.of(filledVerticies);
     }
+
+    public static Float2 getModelHeight(List<Vertex> vertices){
+        float minY = Float.POSITIVE_INFINITY,
+                maxY = Float.NEGATIVE_INFINITY;
+
+        for(Vertex v : vertices){
+            if(v.position.y < minY){
+                minY = v.position.y;
+            }
+            else if (v.position.y > maxY){
+                maxY = v.position.y;
+            }
+        }
+
+        return new Float2(maxY, minY);
+    }
+
+
 }
