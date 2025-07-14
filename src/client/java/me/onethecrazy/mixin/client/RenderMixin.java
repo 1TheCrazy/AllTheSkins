@@ -1,9 +1,8 @@
 package me.onethecrazy.mixin.client;
 
 import me.onethecrazy.AllTheSkins;
-import me.onethecrazy.util.Float2;
-import me.onethecrazy.util.OBJParser;
 import me.onethecrazy.util.Vertex;
+import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.render.OverlayTexture;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.render.VertexConsumer;
@@ -12,6 +11,7 @@ import net.minecraft.client.render.entity.LivingEntityRenderer;
 import net.minecraft.client.render.entity.state.LivingEntityRenderState;
 import net.minecraft.client.render.entity.state.PlayerEntityRenderState;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.RotationAxis;
 import org.joml.Matrix4f;
@@ -21,16 +21,16 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.List;
-import java.util.Optional;
 
 @Mixin(LivingEntityRenderer.class)
-public class PlayerRenderMixin {
+public class RenderMixin <T extends LivingEntity, S extends LivingEntityRenderState>{
+    private AbstractClientPlayerEntity player;
 
     @Inject(method="render(Lnet/minecraft/client/render/entity/state/LivingEntityRenderState;Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V", at=@At("HEAD"), cancellable = true)
     private void onPlayerRender(LivingEntityRenderState state, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int light, CallbackInfo ci){
         // We only want to hook the player rendering
         if(state instanceof PlayerEntityRenderState playerState){
-            List<Vertex> vertices = AllTheSkins.MUSHROOM;
+            List<Vertex> vertices = AllTheSkins.HATSUNE_MIKU_TYPE_SHIT;
 
             // If the model couldn't be loaded, we return in order to hand off to regular rendering
             if(vertices.isEmpty())
@@ -55,7 +55,15 @@ public class PlayerRenderMixin {
 
             matrixStack.pop();
 
+            AllTheSkins.LOGGER.info("Rendering with uuid of: " + player.getUuid());
+
             ci.cancel();
         }
+    }
+
+    @Inject(method="updateRenderState(Lnet/minecraft/entity/LivingEntity;Lnet/minecraft/client/render/entity/state/LivingEntityRenderState;F)V", at=@At("HEAD"))
+    private void onUpdateRenderState(T livingEntity, S livingEntityRenderState, float f, CallbackInfo ci){
+        if(livingEntity instanceof AbstractClientPlayerEntity)
+            player = (AbstractClientPlayerEntity) livingEntity;
     }
 }
