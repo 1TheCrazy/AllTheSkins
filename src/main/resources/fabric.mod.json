@@ -10,7 +10,7 @@
 	"contact": {
 		"sources": "https://github.com/1TheCrazy/AllTheSkins"
 	},
-	"license": "CC0-1.0",
+	"license": "MIT",
 	"icon": "assets/all-the-skins/icon.png",
 	"environment": "*",
 	"entrypoints": {
