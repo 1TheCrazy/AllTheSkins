@@ -21,14 +21,10 @@ repositories {
 
 loom {
 	splitEnvironmentSourceSets()
+}
 
-	mods {
-		"all-the-skins" {
-			sourceSet sourceSets.main
-			sourceSet sourceSets.client
-		}
-	}
-
+configurations {
+	nfdJars
 }
 
 dependencies {
@@ -40,39 +36,47 @@ dependencies {
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-	String nfdVersion = "org.lwjgl:lwjgl-nfd:3.3.3";
+	String nfdVersion = "3.3.3";
 
-	// 1) Compile‐time & runtime API
-	//modImplementation "org.lwjgl:lwjgl-nfd:${nfdVersion}"
+	// For Compile Time
+	implementation "org.lwjgl:lwjgl-nfd:${nfdVersion}"
 
-	shadow(implementation(nfdVersion) {
-		exclude group: 'org.lwjgl'
-		exclude group: 'org.lwjgl.lwjgl'
-	})
-	shadow(api("org.lwjgl:lwjgl-nfd::natives-macos") {
-		exclude group: 'org.lwjgl'
-		exclude group: 'org.lwjgl.lwjgl'
-	})
-	shadow(api("org.lwjgl:lwjgl-nfd::natives-linux") {
-		exclude group: 'org.lwjgl'
-		exclude group: 'org.lwjgl.lwjgl'
-	})
-	shadow(api("org.lwjgl:lwjgl-nfd::natives-windows") {
-		exclude group: 'org.lwjgl'
-		exclude group: 'org.lwjgl.lwjgl'
-	})
-	shadow(api("org.lwjgl:lwjgl-nfd::natives-macos-arm64") {
-		exclude group: 'org.lwjgl'
-		exclude group: 'org.lwjgl.lwjgl'
-	})
-	shadow(api("org.lwjgl:lwjgl-nfd::natives-linux-arm64") {
-		exclude group: 'org.lwjgl'
-		exclude group: 'org.lwjgl.lwjgl'
-	})
-	shadow(api("org.lwjgl:lwjgl-nfd::natives-windows-arm64") {
-		exclude group: 'org.lwjgl'
-		exclude group: 'org.lwjgl.lwjgl'
-	})
+	// Pull the NFD API + each native classifier into custom config
+	nfdJars "org.lwjgl:lwjgl-nfd:${nfdVersion}"
+	nfdJars "org.lwjgl:lwjgl-nfd:${nfdVersion}:natives-windows"
+	nfdJars "org.lwjgl:lwjgl-nfd:${nfdVersion}:natives-windows-arm64"
+	nfdJars "org.lwjgl:lwjgl-nfd:${nfdVersion}:natives-linux"
+	nfdJars "org.lwjgl:lwjgl-nfd:${nfdVersion}:natives-linux-arm64"
+	nfdJars "org.lwjgl:lwjgl-nfd:${nfdVersion}:natives-macos"
+	nfdJars "org.lwjgl:lwjgl-nfd:${nfdVersion}:natives-macos-arm64"
+}
+
+// Create fat jar
+// Vibe coded with 3h of pain (cause nobody knows how this shit works)
+shadowJar {
+	// Only shade in the NFD jars (nothing else from your classpath)
+	configurations = [project.configurations.nfdJars]
+
+	//Still pull in your own compiled classes + resources
+	from(sourceSets.main.output)
+	from(sourceSets.client.output)
+
+	// Explode every NFD jar so the native libs (.dll/.so/.dylib) end up at the root
+	from {
+		project.configurations.nfdJars.collect { zipTree(it) }
+	}
+
+	// Standard shadow tweaks
+	archiveBaseName.set("all-the-skins-all")
+	destinationDirectory.set(file("$buildDir/tmp/allJar"))
+	exclude("LICENSE", "LICENSE.txt")
+	mergeServiceFiles()
+}
+
+remapJar {
+	// Remap our fat shadow-jar into the final mod jar
+	dependsOn shadowJar
+	input.set(shadowJar.archiveFile)
 }
 
 processResources {
