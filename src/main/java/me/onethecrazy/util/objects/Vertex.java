@@ -1,4 +1,4 @@
-package me.onethecrazy.util;
+package me.onethecrazy.util.objects;
 
 public class Vertex {
     public Float3 position;

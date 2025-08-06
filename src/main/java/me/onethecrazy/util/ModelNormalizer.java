@@ -2,6 +2,10 @@ package me.onethecrazy.util;
 
 import java.util.List;
 import java.util.Optional;
+
+import me.onethecrazy.util.objects.Float2;
+import me.onethecrazy.util.objects.Float3;
+import me.onethecrazy.util.objects.Vertex;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 

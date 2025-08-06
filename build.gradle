@@ -1,5 +1,6 @@
 plugins {
 	id 'fabric-loom' version "${loom_version}"
+	id 'com.github.johnrengelman.shadow' version "7.1.0"
 	id 'maven-publish'
 }
 
@@ -38,7 +39,40 @@ dependencies {
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
-	
+
+	String nfdVersion = "org.lwjgl:lwjgl-nfd:3.3.3";
+
+	// 1) Compile‐time & runtime API
+	//modImplementation "org.lwjgl:lwjgl-nfd:${nfdVersion}"
+
+	shadow(implementation(nfdVersion) {
+		exclude group: 'org.lwjgl'
+		exclude group: 'org.lwjgl.lwjgl'
+	})
+	shadow(api("org.lwjgl:lwjgl-nfd::natives-macos") {
+		exclude group: 'org.lwjgl'
+		exclude group: 'org.lwjgl.lwjgl'
+	})
+	shadow(api("org.lwjgl:lwjgl-nfd::natives-linux") {
+		exclude group: 'org.lwjgl'
+		exclude group: 'org.lwjgl.lwjgl'
+	})
+	shadow(api("org.lwjgl:lwjgl-nfd::natives-windows") {
+		exclude group: 'org.lwjgl'
+		exclude group: 'org.lwjgl.lwjgl'
+	})
+	shadow(api("org.lwjgl:lwjgl-nfd::natives-macos-arm64") {
+		exclude group: 'org.lwjgl'
+		exclude group: 'org.lwjgl.lwjgl'
+	})
+	shadow(api("org.lwjgl:lwjgl-nfd::natives-linux-arm64") {
+		exclude group: 'org.lwjgl'
+		exclude group: 'org.lwjgl.lwjgl'
+	})
+	shadow(api("org.lwjgl:lwjgl-nfd::natives-windows-arm64") {
+		exclude group: 'org.lwjgl'
+		exclude group: 'org.lwjgl.lwjgl'
+	})
 }
 
 processResources {

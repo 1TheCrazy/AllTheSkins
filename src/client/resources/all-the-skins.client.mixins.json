@@ -3,7 +3,8 @@
   "package": "me.onethecrazy.mixin.client",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "RenderMixin"
+    "RenderMixin",
+    "MainMenuMixin"
   ],
   "injectors": {
     "defaultRequire": 1

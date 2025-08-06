@@ -1,15 +1,29 @@
 package me.onethecrazy.util;
 
 import me.onethecrazy.AllTheSkins;
+import me.onethecrazy.util.objects.Float2;
+import me.onethecrazy.util.objects.Float3;
+import me.onethecrazy.util.objects.Vertex;
 
 import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.io.IOException;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.regex.Pattern;
 
 public class OBJParser {
-    public static Optional<List<Vertex>> parse(String path){
+    public static Optional<List<Vertex>> parse(Path path){
+        try {
+            String content = Files.readString(path);
+            return parse(content);
+        }
+        catch (Exception e){
+            AllTheSkins.LOGGER.error("Ran into error while reading .obj File: {0}", e);
+            return Optional.empty();
+        }
+
+    }
+
+    public static Optional<List<Vertex>> parse(String obj){
         List<Float3> vertexList = new ArrayList<>();
         List<Float3> normalList = new ArrayList<>();
         List<Float2> textureList = new ArrayList<>();
@@ -17,7 +31,7 @@ public class OBJParser {
         List<Vertex> filledVerticies = new ArrayList<>();
 
         try {
-            List<String> lines = Files.readAllLines(Paths.get(path));
+            List<String> lines = obj.lines().toList();
 
             for (String line : lines) {
                 if(line.isEmpty())
@@ -99,7 +113,7 @@ public class OBJParser {
                     }
                 }
             }
-        } catch (IOException e) {
+        } catch(Exception e) {
             return Optional.empty();
         }
 

@@ -1,5 +1,7 @@
 package me.onethecrazy.util;
 
+import me.onethecrazy.util.objects.Float3;
+
 // Just noticed I never use this :/
 public class VectorMath {
     public static float dot(Float3 a, Float3 b){

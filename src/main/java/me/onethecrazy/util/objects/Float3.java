@@ -1,4 +1,4 @@
-package me.onethecrazy.util;
+package me.onethecrazy.util.objects;
 
 public class Float3 {
     public float x;
