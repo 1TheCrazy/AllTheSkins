@@ -108,8 +108,17 @@ public class OBJParser {
                         filledVerticies.add(intermediate);
                     }
 
+                    // Add duplicate since Minecraft renders Triangles wierd
                     if(numVerticies == 3){
-                        filledVerticies.add(filledVerticies.getLast());
+                        Vertex v = filledVerticies.getLast();
+
+                        Vertex dup = new Vertex(
+                                new Float3(v.position.x, v.position.y, v.position.z),
+                                new Float3(v.normals.x, v.normals.y, v.normals.z),
+                                new Float2(v.textureUV.u, v.textureUV.v)
+                        );
+
+                        filledVerticies.add(dup);
                     }
                 }
             }
