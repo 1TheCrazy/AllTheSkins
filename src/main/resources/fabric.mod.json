@@ -1,3 +1,4 @@
+
 {
 	"schemaVersion": 1,
 	"id": "all-the-skins",
@@ -8,7 +9,8 @@
 		"1TheCrazy"
 	],
 	"contact": {
-		"sources": "https://github.com/1TheCrazy/AllTheSkins"
+		"sources": "https://github.com/1TheCrazy/AllTheSkins",
+		"homepage": "https://github.com/1TheCrazy/AllTheSkins"
 	},
 	"license": "MIT",
 	"icon": "assets/all-the-skins/icon.png",
