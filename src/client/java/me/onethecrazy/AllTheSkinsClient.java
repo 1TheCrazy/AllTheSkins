@@ -16,6 +16,7 @@ import java.io.IOException;
 public class AllTheSkinsClient implements ClientModInitializer {
 	@Nullable private static AllTheSkinsSave options;
 	public static String bannerText;
+	public static boolean isFirstStartup;
 
 	public static AllTheSkinsSave options(){
 		try{
@@ -30,8 +31,7 @@ public class AllTheSkinsClient implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient() {
-		// Create Paths (really only need on first startup)
-		FileUtil.createPaths();
+		firstStartupSetup();
 		// Load Banner text
 		BackendInteractor.getBannerTextAsync().thenAccept(text -> bannerText = text);
 		// Load self skin
@@ -57,5 +57,13 @@ public class AllTheSkinsClient implements ClientModInitializer {
 				SkinManager.loadSkin(other.getUuidAsString());
 			}
 		});
+	}
+
+	public void firstStartupSetup(){
+		isFirstStartup = !FileUtil.doesFileExist(FileUtil.getSavePath());
+
+		if(isFirstStartup)
+			// Create Paths
+			FileUtil.createPaths();
 	}
 }

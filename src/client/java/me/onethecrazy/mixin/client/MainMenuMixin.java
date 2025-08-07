@@ -1,11 +1,7 @@
 package me.onethecrazy.mixin.client;
 
 import com.llamalad7.mixinextras.sugar.Local;
-import me.onethecrazy.AllTheSkins;
-import me.onethecrazy.AllTheSkinsClient;
-import me.onethecrazy.ClientFileUtil;
-import me.onethecrazy.SkinManager;
-import me.onethecrazy.util.FileUtil;
+import me.onethecrazy.*;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
@@ -26,11 +22,16 @@ public abstract class MainMenuMixin extends Screen{
     private static final int TEXT_OFFSET = 2;
     // To be compatible with the TitleScreen
     private static final int BUTTON_WIDTH = 98;
+    private static final int SMALL_BUTTON_WIDTH = 20;
     private static final int BUTTON_HEIGHT = 20;
     private static final int TOP_OFFSET = 48;
     private static final int Y_SPACING = 24;
 
     public ButtonWidget selectSkinButton;
+    public ButtonWidget resetButton;
+    public ButtonWidget toggleButton;
+
+    private boolean hasModerationNoticeBeenShown = false;
 
     protected MainMenuMixin(Text title) {
         super(title);
@@ -40,20 +41,28 @@ public abstract class MainMenuMixin extends Screen{
     // We also cannot supply the vertices in a good way (bc fuck me ig ¯\_(ツ)_/¯)
     @Inject(method = "init*", at = @At("TAIL"))
     private void onInit(CallbackInfo ci){
-        // Add button
+        // Add buttons
         selectSkinButton = ButtonWidget.builder(Text.empty(), (button) -> {
-            // Open File picker dialogue
-            ClientFileUtil.objPickerDialog()
-                    // Execute when user completes File-Selection
-                    .thenAccept(f -> {
-                        if(f == null || Objects.equals(f, ""))
-                            return;
-
-                        SkinManager.selectSelfSkin(f);
-                    });
-        }).dimensions(this.width / 2 + MARGIN + BUTTON_WIDTH, this.height / 4 + TOP_OFFSET + Y_SPACING * 2, BUTTON_WIDTH, BUTTON_HEIGHT).build();
+            SkinManager.pickClientSkin();
+        }).dimensions(this.width / 2 - MARGIN - BUTTON_WIDTH * 2, this.height / 4 + TOP_OFFSET + Y_SPACING * 2, BUTTON_WIDTH, BUTTON_HEIGHT).build();
+        resetButton = ButtonWidget.builder(Text.empty(), (button) -> {
+            SkinManager.resetSelfSkin();
+        }).dimensions(this.width / 2 - MARGIN - BUTTON_WIDTH - SMALL_BUTTON_WIDTH, this.height / 4 + TOP_OFFSET + Y_SPACING, SMALL_BUTTON_WIDTH, BUTTON_HEIGHT).build();
+        toggleButton = ButtonWidget.builder(Text.empty(), (button) -> {
+            AllTheSkinsClient.options().isEnabled = !AllTheSkinsClient.options().isEnabled;
+        }).dimensions(this.width / 2 - MARGIN  - BUTTON_WIDTH - SMALL_BUTTON_WIDTH - (BUTTON_WIDTH - SMALL_BUTTON_WIDTH), this.height / 4 + TOP_OFFSET + Y_SPACING, BUTTON_WIDTH - SMALL_BUTTON_WIDTH - MARGIN, BUTTON_HEIGHT).build();
 
         this.addDrawableChild(selectSkinButton);
+        this.addDrawableChild(resetButton);
+        this.addDrawableChild(toggleButton);
+
+        resetButton.setMessage(Text.of("\uD83D\uDD04"));
+
+        // Show Moderation Notice everytime we open Main Menu
+        if(!hasModerationNoticeBeenShown && AllTheSkinsClient.isFirstStartup){
+            ToastUtil.showModerationNoticeToast();
+            hasModerationNoticeBeenShown = true;
+        }
     }
 
     @Inject(method = "render", at = @At("TAIL"))
@@ -61,9 +70,11 @@ public abstract class MainMenuMixin extends Screen{
         var client = MinecraftClient.getInstance();
         var textRenderer = client.textRenderer;
 
-        Text buttonText = Objects.equals(AllTheSkinsClient.options().selectedSkin.id, "") ? Text.translatable("alltheskins.select_skin") : Text.of(AllTheSkinsClient.options().selectedSkin.name);
-        selectSkinButton.setMessage(buttonText);
+        Text selectButtonText = Objects.equals(AllTheSkinsClient.options().selectedSkin.id, "") ? Text.translatable("gui.alltheskins.select_skin") : Text.of(AllTheSkinsClient.options().selectedSkin.name);
+        Text toggleButtonText = AllTheSkinsClient.options().isEnabled ? Text.translatable("gui.alltheskins.mod_enabled") : Text.translatable("gui.alltheskins.mod_disabled");
+        selectSkinButton.setMessage(selectButtonText);
+        toggleButton.setMessage(toggleButtonText);
 
-        ctx.drawText(textRenderer, AllTheSkinsClient.bannerText, this.width / 2 + MARGIN + BUTTON_WIDTH + TEXT_OFFSET, this.height / 4 + TOP_OFFSET + Y_SPACING * 2 + BUTTON_HEIGHT + MARGIN, ColorHelper.withAlpha(f, 0xFFFFFF), true);
+        ctx.drawText(textRenderer, AllTheSkinsClient.bannerText, this.width / 2 - MARGIN - BUTTON_WIDTH * 2, this.selectSkinButton.getY() + MARGIN + BUTTON_HEIGHT, ColorHelper.withAlpha(f, 0xFFFFFF), true);
     }
 }

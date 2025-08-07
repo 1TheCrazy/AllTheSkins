@@ -66,7 +66,6 @@ public class FileUtil {
 
             AllTheSkins.LOGGER.error("Ran into error while creating default path: {0}", e);
         }
-
     }
 
     public static Path getDefaultPath(){

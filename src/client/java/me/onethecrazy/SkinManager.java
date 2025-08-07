@@ -5,12 +5,12 @@ import me.onethecrazy.util.ModelNormalizer;
 import me.onethecrazy.util.OBJParser;
 import me.onethecrazy.util.network.BackendInteractor;
 import me.onethecrazy.util.objects.Vertex;
-import me.onethecrazy.util.objects.save.AllTheSkinsSave;
 import me.onethecrazy.util.objects.save.Skin;
 import net.minecraft.client.MinecraftClient;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +22,35 @@ public class SkinManager {
     public static Map<String, @Nullable List<Vertex>> skinCache = new HashMap<>();
 
     private static final MinecraftClient client = MinecraftClient.getInstance();
+
+    public static void pickClientSkin(){
+
+        // Open File picker dialogue
+        ClientFileUtil.objPickerDialog()
+                // Execute when user completes File-Selection
+                .thenAccept(f -> {
+                    if(f == null || Objects.equals(f, ""))
+                        return;
+
+                    try{
+                        long fileSize = Files.size(Path.of(f));
+
+                        long MAX_FILE_SIZE = 5L * 1024 * 1024;
+
+                        // Restrict File size to 5mb
+                        if(fileSize > MAX_FILE_SIZE){
+                            ToastUtil.showFileTooLargeToast();
+                            return;
+                        }
+                    }
+                    catch(Exception ex) {
+                        AllTheSkins.LOGGER.info("Ran into error while getting file size in client skin picker: {0}", ex);
+                        return;
+                    }
+
+                    SkinManager.selectSelfSkin(f);
+                });
+    }
 
     public static void selectSelfSkin(String objPathString){
         try{
@@ -55,12 +84,25 @@ public class SkinManager {
         }
     }
 
+    public static void resetSelfSkin(){
+        String uuid = client.getSession().getUuidOrNull().toString();
+
+        AllTheSkinsClient.options().selectedSkin = new Skin("", "");
+
+        // Reload self skin
+        loadSelfSkin();
+
+        // Send update to server
+        BackendInteractor.setSkinOBJ(uuid, "");
+    }
+
     public static void loadSelfSkin(){
         String uuid = client.getSession().getUuidOrNull().toString();
 
         // Set self skin to empty if we don't have a selected skin
         if(Objects.equals(AllTheSkinsClient.options().selectedSkin.id, "")){
             putLookupEntry(uuid, "");
+            putCacheEntry(uuid, null);
             return;
         }
 

@@ -28,15 +28,7 @@ public class Commands {
     private static int waypointsCommandHandler(CommandContext<FabricClientCommandSource> ctx, AllTheSkinsCommandType cmdType){
         switch(cmdType){
             case AllTheSkinsCommandType.SET -> {
-                // Open File picker dialogue
-                ClientFileUtil.objPickerDialog()
-                        // Execute when user completes File-Selection
-                        .thenAccept(f -> {
-                            if(f == null || Objects.equals(f, ""))
-                                return;
-
-                            SkinManager.selectSelfSkin(f);
-                        });
+                SkinManager.pickClientSkin();
                 return 1;
             }
             case COPY -> {
