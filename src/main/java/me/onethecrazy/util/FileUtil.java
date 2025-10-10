@@ -115,10 +115,15 @@ public class FileUtil {
         return Files.exists(filePath);
     }
 
-    public static void writeSave(AllTheSkinsSave save) throws IOException {
-        Gson gson = new Gson();
-        String json = gson.toJson(save);
+    public static void writeSave(AllTheSkinsSave save){
+        try{
+            Gson gson = new Gson();
+            String json = gson.toJson(save);
 
-        writeFile(getSavePath(), json);
+            writeFile(getSavePath(), json);
+        }
+        catch(Exception ex){
+            AllTheSkins.LOGGER.error("Failed to save config: ", ex);
+        }
     }
 }

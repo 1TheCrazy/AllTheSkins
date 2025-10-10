@@ -71,12 +71,7 @@ public class SkinManager {
             AllTheSkinsClient.options().selectedSkin = new Skin(hash, name);
 
             // Save the updated options:
-            try{
-                FileUtil.writeSave(AllTheSkinsClient.options());
-            }
-            catch(Exception ex){
-                AllTheSkins.LOGGER.error("Ran into error while saving save: {0}", ex);
-            }
+            FileUtil.writeSave(AllTheSkinsClient.options());
 
             // Reload self skin
             loadSelfSkin();
@@ -96,6 +91,9 @@ public class SkinManager {
 
         // Reload self skin
         loadSelfSkin();
+
+        // Save in options
+        FileUtil.writeSave(AllTheSkinsClient.options());
 
         // Send update to server
         BackendInteractor.setSkinOBJ(uuid, "");
