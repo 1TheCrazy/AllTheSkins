@@ -106,9 +106,17 @@ public class BackendInteractor {
                 .build();
 
         return client.sendAsync(req, HttpResponse.BodyHandlers.ofString())
-                .thenApply(HttpResponse::body)
+                .thenApply(response -> {
+                    int status = response.statusCode();
+
+                    if (status >= 200 && status < 300)
+                        return response.body();
+
+                    AllTheSkins.LOGGER.error("Banner request failed with HTTP {}", status);
+                    return ""; // Fallback
+                })
                 .exceptionally(ex -> {
-                    AllTheSkins.LOGGER.error("Error while getting banner String: {0}", ex);
+                    AllTheSkins.LOGGER.error("Error while getting banner String: ", ex);
                     return "";
                 });
     }
