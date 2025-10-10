@@ -4,6 +4,7 @@ import me.onethecrazy.AllTheSkins;
 import me.onethecrazy.AllTheSkinsClient;
 import me.onethecrazy.SkinManager;
 import me.onethecrazy.screens.rendering.SkinPreviewRenderer;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -77,6 +78,9 @@ public class ConfigScreen extends Screen {
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         // Render the skin preview
         skinPreviewRenderer.renderPreview(context, delta);
+
+        // Render the banner text
+        context.drawText(MinecraftClient.getInstance().textRenderer, AllTheSkinsClient.bannerText, getCellOriginX(), getCellOriginY() + getScreenFriendlyDimensions() + MARGIN, 0xFFFFFFFF, true);
 
         super.render(context, mouseX, mouseY, delta);
     }
