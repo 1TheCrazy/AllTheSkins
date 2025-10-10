@@ -86,6 +86,8 @@ remapJar {
 	// Remap our fat shadow-jar into the final mod jar
 	dependsOn shadowJar
 	input.set(shadowJar.archiveFile)
+
+	archiveFileName.set("${project.archives_base_name}-v${project.mod_version}+mc${project.minecraft_version}.jar")
 }
 
 processResources {
