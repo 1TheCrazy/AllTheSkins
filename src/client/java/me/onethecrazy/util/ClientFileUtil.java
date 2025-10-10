@@ -1,5 +1,6 @@
-package me.onethecrazy;
+package me.onethecrazy.util;
 
+import me.onethecrazy.AllTheSkins;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryStack;

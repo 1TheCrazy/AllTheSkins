@@ -1,4 +1,4 @@
-package me.onethecrazy;
+package me.onethecrazy.util;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.toast.SystemToast;
