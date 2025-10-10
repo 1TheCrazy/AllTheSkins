@@ -3,9 +3,11 @@ package me.onethecrazy.mixin.client;
 import me.onethecrazy.AllTheSkins;
 import me.onethecrazy.AllTheSkinsClient;
 import me.onethecrazy.SkinManager;
+import me.onethecrazy.screens.ConfigScreen;
 import me.onethecrazy.util.objects.Vertex;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
+import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.render.*;
 import net.minecraft.client.render.entity.EntityRenderer;
@@ -28,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Quaternionfc;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -36,7 +39,7 @@ import java.util.List;
 
 @Mixin(LivingEntityRenderer.class)
 public abstract class RenderMixin <T extends LivingEntity, S extends LivingEntityRenderState>{
-    private AbstractClientPlayerEntity player;
+    @Unique private AbstractClientPlayerEntity player;
 
     @Inject(method="render(Lnet/minecraft/client/render/entity/state/LivingEntityRenderState;Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V", at=@At("HEAD"), cancellable = true)
     private void onPlayerRender(LivingEntityRenderState state, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int light, CallbackInfo ci){
@@ -45,7 +48,22 @@ public abstract class RenderMixin <T extends LivingEntity, S extends LivingEntit
             if(!AllTheSkinsClient.options().isEnabled)
                 return;
 
-            String uuid = player.getUuid().toString();
+            String uuid;
+
+            try {
+                uuid = player.getUuid().toString();
+            }
+            catch(NullPointerException ex){
+                var screen = MinecraftClient.getInstance().currentScreen;
+
+                // We are inside a screen and don't have an uuid, so we just fall back to the clients uuid
+                if(screen instanceof TitleScreen || screen instanceof ConfigScreen)
+                    uuid = MinecraftClient.getInstance().getSession().getUuidOrNull().toString();
+                // Just hand off to default rendering
+                else
+                    return;
+            }
+
 
             // We have never encountered this user before (we don't know whether he has a skin or not) or we have never loaded the skin of this user
             if(!SkinManager.skinLookup.containsKey(uuid) || !SkinManager.skinCache.containsKey(uuid)){

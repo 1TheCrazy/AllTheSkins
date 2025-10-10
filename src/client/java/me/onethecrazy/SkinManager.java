@@ -1,8 +1,6 @@
 package me.onethecrazy;
 
-import me.onethecrazy.util.FileUtil;
-import me.onethecrazy.util.ModelNormalizer;
-import me.onethecrazy.util.OBJParser;
+import me.onethecrazy.util.*;
 import me.onethecrazy.util.network.BackendInteractor;
 import me.onethecrazy.util.objects.Vertex;
 import me.onethecrazy.util.objects.save.Skin;
@@ -22,6 +20,13 @@ public class SkinManager {
     public static Map<String, @Nullable List<Vertex>> skinCache = new HashMap<>();
 
     private static final MinecraftClient client = MinecraftClient.getInstance();
+
+    public static List<Vertex> selfSkinVertices() {
+        String uuid = client.getSession().getUuidOrNull().toString();
+        var cacheEntry = skinCache.get(uuid);
+
+        return cacheEntry == null ? List.of() : cacheEntry;
+    }
 
     public static void pickClientSkin(){
 
