@@ -4,21 +4,10 @@ import me.onethecrazy.AllTheSkins;
 import me.onethecrazy.AllTheSkinsClient;
 import me.onethecrazy.SkinManager;
 import me.onethecrazy.screens.rendering.SkinPreviewRenderer;
-import me.onethecrazy.util.objects.Vertex;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
-import net.minecraft.client.render.OverlayTexture;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.util.Window;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.ColorHelper;
-import net.minecraft.util.math.MathHelper;
 import org.spongepowered.asm.mixin.Unique;
 
 import java.util.Objects;
@@ -27,12 +16,10 @@ public class ConfigScreen extends Screen {
     // Constants
     private static final int SKIN_PREVIEW_DIMENSIONS = 300;
     private static final int MARGIN = 6;
-    private static final float SKIN_PREVIEW_SCALE = 140f;
-    private static final int BUTTON_WIDTH = 98;
-    private static final int SMALL_BUTTON_WIDTH = 20;
     private static final int BUTTON_HEIGHT = 20;
-    private static final int TOP_OFFSET = 48;
     private static final int Y_SPACING = 24;
+    private static final float YAW_SENS   = 0.6f;
+    private static final float PITCH_SENS = 0.6f;
 
     // State stuff
     private SkinPreviewRenderer skinPreviewRenderer;
@@ -40,6 +27,7 @@ public class ConfigScreen extends Screen {
     private ButtonWidget resetButton;
     private ButtonWidget toggleButton;
     private ButtonWidget doneButton;
+    private boolean rotating = false;
 
     public ConfigScreen() {
         super(Text.of("All The Skins"));
@@ -95,34 +83,37 @@ public class ConfigScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-
+        if (button == 0 && isInsideCell(mouseX, mouseY)) {
+            rotating = true;
+            return true; // start drag mode
+        }
 
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
-
+        if (rotating && button == 0) {
+            rotating = false;
+            return true; // stop rotation mode
+        }
 
         return super.mouseReleased(mouseX, mouseY, button);
     }
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
+        if (rotating && button == 0) {
+            // convert mouse motion to yaw/pitch deltas
+            float yawDelta   = (float) (deltaX * YAW_SENS);
+            float pitchDelta = (float) (-deltaY * PITCH_SENS);
 
+            // apply directly
+            skinPreviewRenderer.addRotation(yawDelta, pitchDelta);
+            return true; // consume drag
+        }
 
         return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
-    }
-
-    // -- Save the State --
-    @Override
-    public void removed() {
-
-    }
-
-    @Override
-    public void close() {
-        if (client != null) client.setScreen(null);
     }
 
     // Position Helpers
@@ -141,6 +132,13 @@ public class ConfigScreen extends Screen {
 
     @Unique private float getScreenFriendlyScale(){
         return getScreenFriendlyDimensions() / 2f - 10;
+    }
+
+    private boolean isInsideCell(double x, double y) {
+        int x0 = getCellOriginX();
+        int y0 = getCellOriginY();
+        int s  = getScreenFriendlyDimensions();
+        return x >= x0 && x <= x0 + s && y >= y0 && y <= y0 + s;
     }
 
     // Button Text helpers

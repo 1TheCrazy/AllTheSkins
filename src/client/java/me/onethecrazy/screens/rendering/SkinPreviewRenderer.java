@@ -14,6 +14,7 @@ public class SkinPreviewRenderer {
     private final int x, y;
     private final int dimensions;
     private final float scale;
+    private float yaw, pitch = 0;
 
     public SkinPreviewRenderer(int x, int y, int dimensions, float scale){
         var mc = MinecraftClient.getInstance();
@@ -37,9 +38,6 @@ public class SkinPreviewRenderer {
         // Tick the animation state
         skinPreviewRenderState.age += deltaTicks;
 
-        // Render the border where the Mesh is placed inside
-        ctx.drawBorder(x, y, dimensions, dimensions, 0xFFFFFFFF);
-
         // Render the Preview of the player skin
         ctx.addEntity(
                 skinPreviewRenderState,
@@ -47,14 +45,19 @@ public class SkinPreviewRenderer {
                 new Vector3f(0f, 1.0f, 0f),
                 new Quaternionf()
                         .rotateAxis(Math.toRadians(180f), 0f, 0f, 1f) // Z correction
-                        .rotateAxis(Math.toRadians(180f), 0f, 1f, 0f), // Y correction
+                        .rotateAxis(Math.toRadians(180f + yaw), 0f, 1f, 0f) // Y correction
+                        .rotateAxis(Math.toRadians(-pitch), 1f, 0f, 0f),
                 null,
                 x, y,
                 x + dimensions, y + dimensions
         );
+
+        // Render the border where the Mesh is placed inside
+        ctx.drawBorder(x, y, dimensions, dimensions, 0xFFFFFFFF);
     }
 
-    public void setRotation(){
-
+    public void addRotation(float yaw, float pitch){
+        this.yaw += yaw;
+        this.pitch += pitch;
     }
 }
