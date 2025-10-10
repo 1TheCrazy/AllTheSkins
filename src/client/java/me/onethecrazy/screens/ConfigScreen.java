@@ -80,7 +80,11 @@ public class ConfigScreen extends Screen {
         skinPreviewRenderer.renderPreview(context, delta);
 
         // Render the banner text
-        context.drawText(MinecraftClient.getInstance().textRenderer, AllTheSkinsClient.bannerText, getCellOriginX(), getCellOriginY() + getScreenFriendlyDimensions() + MARGIN, 0xFFFFFFFF, true);
+        context.drawText(textRenderer, AllTheSkinsClient.bannerText, getCellOriginX(), getCellOriginY() + getScreenFriendlyDimensions() + MARGIN, 0xFFFFFFFF, true);
+
+        // Render Mod Title
+        String title = "All The Skins";
+        context.drawText(textRenderer, title, this.width / 2 - textRenderer.getWidth(title) / 2, MARGIN, 0xFFFFFFFF, true);
 
         super.render(context, mouseX, mouseY, delta);
     }
