@@ -1,6 +1,5 @@
 plugins {
 	id 'fabric-loom' version "${loom_version}"
-	id 'com.github.johnrengelman.shadow' version "7.1.0"
 	id 'maven-publish'
 }
 
@@ -29,10 +28,6 @@ loom {
 	splitEnvironmentSourceSets()
 }
 
-configurations {
-	nfdJars
-}
-
 dependencies {
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
@@ -47,46 +42,26 @@ dependencies {
 	// For Compile Time
 	implementation "org.lwjgl:lwjgl-nfd:${nfdVersion}"
 
-	// Pull the NFD API + each native classifier into custom config
-	nfdJars "org.lwjgl:lwjgl-nfd:${nfdVersion}"
-	nfdJars "org.lwjgl:lwjgl-nfd:${nfdVersion}:natives-windows"
-	nfdJars "org.lwjgl:lwjgl-nfd:${nfdVersion}:natives-windows-arm64"
-	nfdJars "org.lwjgl:lwjgl-nfd:${nfdVersion}:natives-linux"
-	nfdJars "org.lwjgl:lwjgl-nfd:${nfdVersion}:natives-linux-arm64"
-	nfdJars "org.lwjgl:lwjgl-nfd:${nfdVersion}:natives-macos"
-	nfdJars "org.lwjgl:lwjgl-nfd:${nfdVersion}:natives-macos-arm64"
+	// Include for builds
+	include "org.lwjgl:lwjgl-nfd:${nfdVersion}"
+	include "org.lwjgl:lwjgl-nfd:${nfdVersion}:natives-windows"
+	include "org.lwjgl:lwjgl-nfd:${nfdVersion}:natives-windows-arm64"
+	include "org.lwjgl:lwjgl-nfd:${nfdVersion}:natives-linux"
+	include "org.lwjgl:lwjgl-nfd:${nfdVersion}:natives-linux-arm64"
+	include "org.lwjgl:lwjgl-nfd:${nfdVersion}:natives-macos"
+	include "org.lwjgl:lwjgl-nfd:${nfdVersion}:natives-macos-arm64"
 
-	// For ModRuntime
+	// For Dev Env
 	modRuntimeOnly "me.djtheredstoner:DevAuth-fabric:1.2.1"
-}
-
-// Create fat jar
-// Vibe coded with 3h of pain (cause nobody knows how this shit works)
-shadowJar {
-	// Only shade in the NFD jars (nothing else from your classpath)
-	configurations = [project.configurations.nfdJars]
-
-	//Still pull in your own compiled classes + resources
-	from(sourceSets.main.output)
-	from(sourceSets.client.output)
-
-	// Explode every NFD jar so the native libs (.dll/.so/.dylib) end up at the root
-	from {
-		project.configurations.nfdJars.collect { zipTree(it) }
-	}
-
-	// Standard shadow tweaks
-	archiveBaseName.set("all-the-skins-all")
-	destinationDirectory.set(file("$buildDir/tmp/allJar"))
-	exclude("LICENSE", "LICENSE.txt")
-	mergeServiceFiles()
+	runtimeOnly "org.lwjgl:lwjgl-nfd:${nfdVersion}:natives-windows"
+	runtimeOnly "org.lwjgl:lwjgl-nfd:${nfdVersion}:natives-windows-arm64"
+	runtimeOnly "org.lwjgl:lwjgl-nfd:${nfdVersion}:natives-linux"
+	runtimeOnly "org.lwjgl:lwjgl-nfd:${nfdVersion}:natives-linux-arm64"
+	runtimeOnly "org.lwjgl:lwjgl-nfd:${nfdVersion}:natives-macos"
+	runtimeOnly "org.lwjgl:lwjgl-nfd:${nfdVersion}:natives-macos-arm64"
 }
 
 remapJar {
-	// Remap our fat shadow-jar into the final mod jar
-	dependsOn shadowJar
-	input.set(shadowJar.archiveFile)
-
 	archiveFileName.set("${project.archives_base_name}-v${project.mod_version}+mc${project.minecraft_version}.jar")
 }
 
