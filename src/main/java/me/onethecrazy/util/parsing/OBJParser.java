@@ -1,13 +1,27 @@
 package me.onethecrazy.util.parsing;
 
+import me.onethecrazy.AllTheSkins;
 import me.onethecrazy.util.objects.Float2;
 import me.onethecrazy.util.objects.Float3;
 import me.onethecrazy.util.objects.Vertex;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.regex.Pattern;
 
-public class OBJParser extends AbstractParser{
+public class OBJParser implements IParser{
+    @Override
+    public Optional<List<Vertex>> parse(Path filePath){
+        try {
+            String content = Files.readString(filePath);
+            return parse(content);
+        }
+        catch (Exception e){
+            AllTheSkins.LOGGER.error("Ran into error while reading OBJ File: ", e);
+            return Optional.empty();
+        }
+    }
 
     public Optional<List<Vertex>> parse(String obj){
         List<Float3> vertexList = new ArrayList<>();
