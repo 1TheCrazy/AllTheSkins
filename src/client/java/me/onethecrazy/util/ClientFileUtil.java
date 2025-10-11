@@ -17,7 +17,7 @@ public class ClientFileUtil {
     private static final ExecutorService DIALOG_THREAD =
             Executors.newSingleThreadExecutor(r -> new Thread(r, "AllTheSkins-Native-Dialog-Thread"));
 
-    public static CompletableFuture<String> objPickerDialog() {
+    public static CompletableFuture<String> modelPickerDialog() {
         AllTheSkins.LOGGER.info("Opening file picker...");
         currentOpenFileDialog = new CompletableFuture<>();
 
@@ -30,14 +30,10 @@ public class ClientFileUtil {
             try (MemoryStack stack = MemoryStack.stackPush()) {
                 PointerBuffer out = stack.callocPointer(1);
 
-                StringBuilder filterBuilder = new StringBuilder();
-
-                filterBuilder.append("obj");
-
                 NFDFilterItem.Buffer filtersBuffer = NFDFilterItem.malloc(1);
                 filtersBuffer.get(0)
-                        .name(stack.UTF8("OBJ Wavefront"))
-                        .spec(stack.UTF8(filterBuilder.toString()));
+                        .name(stack.UTF8("3D Model"))
+                        .spec(stack.UTF8("obj,glb,gltf"));
 
                 int result = NativeFileDialog.NFD_OpenDialog(out, filtersBuffer, "");
 
@@ -47,7 +43,7 @@ public class ClientFileUtil {
                     currentOpenFileDialog.complete(null);
                 }
             } catch (Exception e) {
-                AllTheSkins.LOGGER.error("Ran into error while opening File Dialog: {0}", e);
+                AllTheSkins.LOGGER.error("Ran into error while opening File Dialog: ", e);
             }
         };
 

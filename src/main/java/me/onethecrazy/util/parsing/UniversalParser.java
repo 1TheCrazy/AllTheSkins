@@ -8,28 +8,35 @@ import java.util.Optional;
 
 public class UniversalParser {
     private static final OBJParser objParser = new OBJParser();
+    private static final GLBParser glbParser = new GLBParser();
 
     public static Optional<List<Vertex>> parse(Path path){
-        return parse(path, getParsingFormat(path));
+        var format = getParsingFormat(path);
+
+        // If format == null we crash here
+        // This could be due to:
+        // - NotImplemented
+        // - Outdated Client
+        assert format != null;
+
+        return parse(path, format);
     }
 
     public static Optional<List<Vertex>> parse(Path path, ParsingFormat format){
-        switch(format){
-            case OBJ:
-                return objParser.parse(path);
-
-            default:
-                return Optional.empty();
-        }
+        return switch (format) {
+            case OBJ -> objParser.parse(path);
+            case GLB -> glbParser.parse(path);
+        };
     }
 
     public static ParsingFormat getParsingFormat(Path file){
-        // NOT FINAL
-        return ParsingFormat.OBJ;
-    }
+        var fileName = file.getFileName().toString().toLowerCase();
 
-    public static ParsingFormat getParsingFormat(String content){
-        // NOT FINAL
-        return ParsingFormat.OBJ;
+        if(fileName.endsWith(".obj"))
+            return ParsingFormat.OBJ;
+        else if(fileName.endsWith(".glb") || fileName.endsWith(".gltf"))
+            return ParsingFormat.GLB;
+
+        return null;
     }
 }

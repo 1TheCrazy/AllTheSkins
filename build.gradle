@@ -42,8 +42,9 @@ dependencies {
 
 	String nfdVersion = "3.3.3";
 
-	// For Compile Time
+	// For IDE
 	implementation "org.lwjgl:lwjgl-nfd:${nfdVersion}"
+	implementation "de.javagl:jgltf-model:2.0.4"
 
 	// Include for builds
 	include "org.lwjgl:lwjgl-nfd:${nfdVersion}"
@@ -53,6 +54,8 @@ dependencies {
 	include "org.lwjgl:lwjgl-nfd:${nfdVersion}:natives-linux-arm64"
 	include "org.lwjgl:lwjgl-nfd:${nfdVersion}:natives-macos"
 	include "org.lwjgl:lwjgl-nfd:${nfdVersion}:natives-macos-arm64"
+	// For glb parsing
+	include implementation("de.javagl:jgltf-model:2.0.4")
 
 	// For Dev Env
 	modRuntimeOnly "me.djtheredstoner:DevAuth-fabric:1.2.1"
