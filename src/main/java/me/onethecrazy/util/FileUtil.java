@@ -93,12 +93,15 @@ public class FileUtil {
 
     public static String getSha256(byte[] input){
         try {
-            // Get a SHA-256 MessageDigest instance
+            // Create SHA-256 digest
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
 
-            // Convert bytes to hex
-            StringBuilder hexString = new StringBuilder(2 * input.length);
-            for (byte b : input) {
+            // Compute hash
+            byte[] hash = digest.digest(input);
+
+            // Convert hash bytes to hex
+            StringBuilder hexString = new StringBuilder(2 * hash.length);
+            for (byte b : hash) {
                 String hex = Integer.toHexString(0xff & b);
                 if (hex.length() == 1) hexString.append('0');
                 hexString.append(hex);
