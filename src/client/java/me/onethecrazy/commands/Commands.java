@@ -1,11 +1,10 @@
 package me.onethecrazy.commands;
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.mojang.brigadier.context.CommandContext;
-import me.onethecrazy.AllTheSkinsClient;
-import me.onethecrazy.SkinManager;
+import me.onethecrazy.screens.ConfigScreen;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
+import net.minecraft.client.MinecraftClient;
 
 
 public class Commands {
@@ -13,37 +12,16 @@ public class Commands {
 
     public static void initializeCommands(){
         SKINS_COMMAND = ClientCommandManager.literal("skin")
-                .then(ClientCommandManager.literal("set")
-                        .executes(context -> waypointsCommandHandler(context, AllTheSkinsCommandType.SET)))
-                .then(ClientCommandManager.literal("toggle")
-                        .executes(context -> waypointsCommandHandler(context, AllTheSkinsCommandType.TOGGLE)));
+                        .executes(context -> waypointsCommandHandler());
                 //.then(ClientCommandManager.literal("copy")
                 //       .then(ClientCommandManager.argument("name", StringArgumentType.string()).executes(context -> waypointsCommandHandler(context, AllTheSkinsCommandType.COPY)))
                 //);
     }
 
-    private static int waypointsCommandHandler(CommandContext<FabricClientCommandSource> ctx, AllTheSkinsCommandType cmdType){
-        switch(cmdType){
-            case SET -> {
-                SkinManager.pickClientSkin();
-                return 1;
-            }
-            case TOGGLE -> {
-                AllTheSkinsClient.options().isEnabled = !AllTheSkinsClient.options().isEnabled;
-                return 1;
-            }
-            case COPY -> {
-                // NOT Handled yet
-                return 1;
-            }
-        }
-
-        return 0;
-    }
-
-    private enum AllTheSkinsCommandType {
-        SET,
-        TOGGLE,
-        COPY
+    private static int waypointsCommandHandler(){
+        MinecraftClient.getInstance().send(() ->
+                MinecraftClient.getInstance().setScreen(new ConfigScreen())
+        );
+        return 1;
     }
 }
