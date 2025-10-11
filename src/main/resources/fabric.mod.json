@@ -21,6 +21,9 @@
 		],
 		"client": [
 			"me.onethecrazy.AllTheSkinsClient"
+		],
+		"modmenu": [
+			"me.onethecrazy.ModMenuIntegration"
 		]
 	},
 	"mixins": [

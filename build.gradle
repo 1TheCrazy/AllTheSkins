@@ -22,6 +22,9 @@ repositories {
 			includeGroup("me.djtheredstoner")
 		}
 	}
+
+	// Mod Menu
+	maven { url = "https://api.modrinth.com/maven" }
 }
 
 loom {
@@ -59,6 +62,9 @@ dependencies {
 	runtimeOnly "org.lwjgl:lwjgl-nfd:${nfdVersion}:natives-linux-arm64"
 	runtimeOnly "org.lwjgl:lwjgl-nfd:${nfdVersion}:natives-macos"
 	runtimeOnly "org.lwjgl:lwjgl-nfd:${nfdVersion}:natives-macos-arm64"
+
+	// Mod Menu
+	modApi "maven.modrinth:modmenu:15.0.0-beta.3"
 }
 
 remapJar {
