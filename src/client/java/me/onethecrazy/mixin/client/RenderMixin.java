@@ -100,11 +100,11 @@ public abstract class RenderMixin <T extends LivingEntity, S extends LivingEntit
             MatrixStack.Entry entry = matrixStack.peek();
             Matrix4f matrix = entry.getPositionMatrix();
 
-            RenderLayer layer = RenderLayer.getEntityCutoutNoCull(Identifier.of(AllTheSkins.MOD_ID, "textures/white_pixel.png"));
-            VertexConsumer buffer = vertexConsumerProvider.getBuffer(layer);
-
             for(Vertex v : vertices){
-                buffer.vertex(matrix, v.position.x, v.position.y, v.position.z).color(1f, 1f, 1f, 1f).texture(0, 0).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(entry, v.normals.x, v.normals.y, v.normals.z);
+                RenderLayer layer = RenderLayer.getEntityCutoutNoCull(v.texture);
+                VertexConsumer buffer = vertexConsumerProvider.getBuffer(layer);
+
+                buffer.vertex(matrix, v.position.x, v.position.y, v.position.z).color(v.color).texture(v.textureUV.u, v.textureUV.v).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(entry, v.normals.x, v.normals.y, v.normals.z);
             }
 
             matrixStack.pop();
