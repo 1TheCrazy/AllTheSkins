@@ -9,10 +9,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 
@@ -61,7 +58,7 @@ public class BackendInteractor {
     }
 
 
-    public static void getSkinData(String hash, BiConsumer<@Nullable String, ParsingFormat> onArrive){
+    public static void getSkinData(String hash, BiConsumer<byte[], ParsingFormat> onArrive){
         HttpRequest req = HttpRequest.newBuilder()
                 .uri(URI.create("http://217.154.195.68:6969/files/" + hash))
                 .GET()
@@ -71,7 +68,7 @@ public class BackendInteractor {
                 .thenApply(res -> {
                     var body  = JsonParser.parseString(res.body()).getAsJsonObject();
 
-                    var data3D = body.get("data3d").getAsString();
+                    var data3D = Base64.getDecoder().decode(body.get("data3d").getAsString());
                     var formatString = body.get("format").getAsString();
                     var format = Objects.equals(formatString, "") ? null : ParsingFormat.valueOf(formatString);
 
@@ -86,11 +83,11 @@ public class BackendInteractor {
     }
 
 
-    public static void setSkinData(String uuid, String obj){
+    public static void setSkinData(String uuid, byte[] data3d, ParsingFormat format){
         // Create Http Body
         JsonObject json = new JsonObject();
         json.addProperty("uuid", uuid);
-        json.addProperty("obj", obj);
+        json.addProperty("obj", Base64.getEncoder().encodeToString(data3d));
 
         String payload = new Gson().toJson(json);
 

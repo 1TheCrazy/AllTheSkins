@@ -10,6 +10,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileVisitOption;
@@ -17,22 +18,24 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class FileUtil {
     public static String readJSONObjectFileContents(Path file) throws IOException{
-        createFileIfNotPresent(file, "{}");
+        createFileIfNotPresent(file, "{}".getBytes(StandardCharsets.UTF_8));
 
         return Files.readString(file);
     }
 
-    public static String read3DDataFile(Path file) throws IOException{
-        createFileIfNotPresent(file, "");
+    public static byte[] read3DDataFile(Path file) throws IOException{
+        createFileIfNotPresent(file, new byte[0]);
 
-        return Files.readString(file);
+        return Files.readAllBytes(file);
     }
 
     public static void writeFile(Path file, String content) throws IOException{
-        createFileIfNotPresent(file, "");
+        createFileIfNotPresent(file, new byte[0]);
 
         Files.writeString(file, content);
     }
@@ -45,14 +48,14 @@ public class FileUtil {
         return gson.fromJson(saveContents, AllTheSkinsSave.class);
     }
 
-    public static void createFileIfNotPresent(Path file, String emptyFileContent) throws IOException {
+    public static void createFileIfNotPresent(Path file, byte[] emptyFileContent) throws IOException {
         Path parent = file.getParent();
         if (parent != null) Files.createDirectories(parent);
 
         try {
             Files.createFile(file);
             // Write Empty json, so we don't get an exception when reading the file contents and just parsing them via gson
-            Files.writeString(file, emptyFileContent);
+            Files.write(file, emptyFileContent);
         }
         // File already exists
         catch(FileAlreadyExistsException e){ }
@@ -61,7 +64,7 @@ public class FileUtil {
     public static void createPaths() {
         try{
             Files.createDirectory(getDefaultPath());
-            createFileIfNotPresent(getSavePath(), "{}");
+            createFileIfNotPresent(getSavePath(), "{}".getBytes(StandardCharsets.UTF_8));
             Files.createDirectory(getSkinsPath());
         } catch (IOException e) {
             // Ignore FileAlreadyExistsException
@@ -88,17 +91,14 @@ public class FileUtil {
         return getSkinsPath().resolve(skin + "." + format.name().toLowerCase());
     }
 
-    public static String getSha256(String input){
+    public static String getSha256(byte[] input){
         try {
             // Get a SHA-256 MessageDigest instance
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
 
-            // Compute the hash as bytes
-            byte[] hashBytes = digest.digest(input.getBytes(StandardCharsets.UTF_8));
-
             // Convert bytes to hex
-            StringBuilder hexString = new StringBuilder(2 * hashBytes.length);
-            for (byte b : hashBytes) {
+            StringBuilder hexString = new StringBuilder(2 * input.length);
+            for (byte b : input) {
                 String hex = Integer.toHexString(0xff & b);
                 if (hex.length() == 1) hexString.append('0');
                 hexString.append(hex);

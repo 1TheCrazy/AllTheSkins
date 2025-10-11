@@ -5,7 +5,6 @@ import me.onethecrazy.util.network.BackendInteractor;
 import me.onethecrazy.util.objects.CacheSkin;
 import me.onethecrazy.util.objects.Vertex;
 import me.onethecrazy.util.objects.save.ClientSkin;
-import me.onethecrazy.util.parsing.OBJParser;
 import me.onethecrazy.util.parsing.ParsingFormat;
 import me.onethecrazy.util.parsing.UniversalParser;
 import net.minecraft.client.MinecraftClient;
@@ -28,7 +27,7 @@ public class SkinManager {
     public static void pickClientSkin(){
 
         // Open File picker dialogue
-        ClientFileUtil.objPickerDialog()
+        ClientFileUtil.modelPickerDialog()
                 // Execute when user completes File-Selection
                 .thenAccept(f -> {
                     if(f == null || Objects.equals(f, ""))
@@ -58,10 +57,12 @@ public class SkinManager {
         try{
             String uuid = client.getSession().getUuidOrNull().toString();
 
-            String data3D = FileUtil.read3DDataFile(dataPath);
+            byte[] data3D = FileUtil.read3DDataFile(dataPath);
             String name = dataPath.getFileName().toString();
             String hash = FileUtil.getSha256(data3D);
             ParsingFormat format = UniversalParser.getParsingFormat(dataPath);
+
+            assert format != null;
 
             FileUtil.createFileIfNotPresent(FileUtil.getSkinPath(hash, format), data3D);
 
@@ -74,7 +75,7 @@ public class SkinManager {
             loadSelfSkin();
 
             // Send update to server
-            BackendInteractor.setSkinData(uuid, data3D);
+            BackendInteractor.setSkinData(uuid, data3D, format);
         }
         catch(Exception ex){
             AllTheSkins.LOGGER.info("Ran into error while setting self skin: {0}", ex);
@@ -93,7 +94,7 @@ public class SkinManager {
         FileUtil.writeSave(AllTheSkinsClient.options());
 
         // Send update to server
-        BackendInteractor.setSkinData(uuid, "");
+        BackendInteractor.setSkinData(uuid, new byte[0], ParsingFormat.OBJ);
     }
 
     public static void loadSelfSkin(){
@@ -172,7 +173,7 @@ public class SkinManager {
         // Request from Server
         else{
             BackendInteractor.getSkinData(skinLookup.get(uuid), (data3D, format) -> {
-                if(!Objects.equals(data3D, "") && !Objects.equals(data3D, null)){
+                if(data3D.length != 0){
                     String hash = skinLookup.get(uuid);
 
                     // Try saving to local Cache
