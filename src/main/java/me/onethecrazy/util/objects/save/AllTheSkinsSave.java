@@ -1,11 +1,11 @@
 package me.onethecrazy.util.objects.save;
 
 public class AllTheSkinsSave {
-    public Skin selectedSkin;
+    public ClientSkin selectedSkin;
     public boolean isEnabled;
 
     public AllTheSkinsSave(){
-        this.selectedSkin = new Skin();
+        this.selectedSkin = new ClientSkin();
         this.isEnabled = true;
     }
 }

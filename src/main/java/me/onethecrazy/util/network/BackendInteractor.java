@@ -2,6 +2,7 @@ package me.onethecrazy.util.network;
 
 import com.google.gson.*;
 import me.onethecrazy.AllTheSkins;
+import me.onethecrazy.util.parsing.ParsingFormat;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiConsumer;
 
 public class BackendInteractor {
     private static HttpClient client = HttpClient.newHttpClient();
@@ -59,26 +61,32 @@ public class BackendInteractor {
     }
 
 
-    public static CompletableFuture<@Nullable String> getSkinOBJ(String hash){
+    public static void getSkinData(String hash, BiConsumer<@Nullable String, ParsingFormat> onArrive){
         HttpRequest req = HttpRequest.newBuilder()
-                .uri(URI.create("http://217.154.195.68:6969/files/" + hash + ".obj"))
+                .uri(URI.create("http://217.154.195.68:6969/files/" + hash))
                 .GET()
                 .build();
 
-        return client.sendAsync(req, HttpResponse.BodyHandlers.ofString())
+        client.sendAsync(req, HttpResponse.BodyHandlers.ofString())
                 .thenApply(res -> {
-                    String body = res.body();
+                    var body  = JsonParser.parseString(res.body()).getAsJsonObject();
 
-                    return !Objects.equals(body, "") ? body : null;
+                    var data3D = body.get("data3d").getAsString();
+                    var formatString = body.get("format").getAsString();
+                    var format = Objects.equals(formatString, "") ? null : ParsingFormat.valueOf(formatString);
+
+                    onArrive.accept(data3D, format);
+
+                    return null;
                 })
                 .exceptionally(ex -> {
-                    AllTheSkins.LOGGER.error("Error while getting files: {0}", ex);
+                    AllTheSkins.LOGGER.error("Error while getting files:", ex);
                     return "";
                 });
     }
 
 
-    public static void setSkinOBJ(String uuid, String obj){
+    public static void setSkinData(String uuid, String obj){
         // Create Http Body
         JsonObject json = new JsonObject();
         json.addProperty("uuid", uuid);

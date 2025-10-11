@@ -72,7 +72,7 @@ public abstract class RenderMixin <T extends LivingEntity, S extends LivingEntit
                 return;
             }
 
-            @Nullable List<Vertex> vertices = SkinManager.skinCache.get(uuid);
+            @Nullable List<Vertex> vertices = SkinManager.skinCache.get(uuid).vertices;
 
             // User didn't select a skin
             if(vertices == null || vertices.isEmpty())

@@ -1,10 +1,8 @@
 package me.onethecrazy.screens;
 
-import me.onethecrazy.AllTheSkins;
 import me.onethecrazy.AllTheSkinsClient;
 import me.onethecrazy.SkinManager;
 import me.onethecrazy.screens.rendering.SkinPreviewRenderer;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -151,7 +149,7 @@ public class ConfigScreen extends Screen {
 
     // Button Text helpers
     @Unique private void updateSelectButtonText(){
-        Text text = Objects.equals(AllTheSkinsClient.options().selectedSkin.id, "") ? Text.translatable("gui.alltheskins.select_skin") : Text.of(AllTheSkinsClient.options().selectedSkin.name);
+        Text text = Objects.equals(AllTheSkinsClient.options().selectedSkin.hash, "") ? Text.translatable("gui.alltheskins.select_skin") : Text.of(AllTheSkinsClient.options().selectedSkin.name);
 
         selectSkinButton.setMessage(text);
     }

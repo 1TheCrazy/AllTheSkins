@@ -1,29 +1,15 @@
-package me.onethecrazy.util;
+package me.onethecrazy.util.parsing;
 
-import me.onethecrazy.AllTheSkins;
 import me.onethecrazy.util.objects.Float2;
 import me.onethecrazy.util.objects.Float3;
 import me.onethecrazy.util.objects.Vertex;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.*;
 import java.util.regex.Pattern;
 
-public class OBJParser {
-    public static Optional<List<Vertex>> parse(Path path){
-        try {
-            String content = Files.readString(path);
-            return parse(content);
-        }
-        catch (Exception e){
-            AllTheSkins.LOGGER.error("Ran into error while reading .obj File: {0}", e);
-            return Optional.empty();
-        }
+public class OBJParser extends AbstractParser{
 
-    }
-
-    public static Optional<List<Vertex>> parse(String obj){
+    public Optional<List<Vertex>> parse(String obj){
         List<Float3> vertexList = new ArrayList<>();
         List<Float3> normalList = new ArrayList<>();
         List<Float2> textureList = new ArrayList<>();
@@ -128,22 +114,4 @@ public class OBJParser {
 
         return Optional.of(filledVerticies);
     }
-
-    public static Float2 getModelHeight(List<Vertex> vertices){
-        float minY = Float.POSITIVE_INFINITY,
-                maxY = Float.NEGATIVE_INFINITY;
-
-        for(Vertex v : vertices){
-            if(v.position.y < minY){
-                minY = v.position.y;
-            }
-            else if (v.position.y > maxY){
-                maxY = v.position.y;
-            }
-        }
-
-        return new Float2(maxY, minY);
-    }
-
-
 }

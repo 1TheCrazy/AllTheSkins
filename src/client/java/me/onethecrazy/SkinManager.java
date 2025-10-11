@@ -2,8 +2,12 @@ package me.onethecrazy;
 
 import me.onethecrazy.util.*;
 import me.onethecrazy.util.network.BackendInteractor;
+import me.onethecrazy.util.objects.CacheSkin;
 import me.onethecrazy.util.objects.Vertex;
-import me.onethecrazy.util.objects.save.Skin;
+import me.onethecrazy.util.objects.save.ClientSkin;
+import me.onethecrazy.util.parsing.OBJParser;
+import me.onethecrazy.util.parsing.ParsingFormat;
+import me.onethecrazy.util.parsing.UniversalParser;
 import net.minecraft.client.MinecraftClient;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,16 +21,9 @@ import java.util.Objects;
 
 public class SkinManager {
     public static Map<String, @Nullable String> skinLookup = new HashMap<>();
-    public static Map<String, @Nullable List<Vertex>> skinCache = new HashMap<>();
+    public static Map<String, CacheSkin> skinCache = new HashMap<>();
 
     private static final MinecraftClient client = MinecraftClient.getInstance();
-
-    public static List<Vertex> selfSkinVertices() {
-        String uuid = client.getSession().getUuidOrNull().toString();
-        var cacheEntry = skinCache.get(uuid);
-
-        return cacheEntry == null ? List.of() : cacheEntry;
-    }
 
     public static void pickClientSkin(){
 
@@ -53,22 +50,22 @@ public class SkinManager {
                         return;
                     }
 
-                    SkinManager.selectSelfSkin(f);
+                    SkinManager.selectSelfSkin(Path.of(f));
                 });
     }
 
-    public static void selectSelfSkin(String objPathString){
+    public static void selectSelfSkin(Path dataPath){
         try{
             String uuid = client.getSession().getUuidOrNull().toString();
-            Path objPath = Path.of(objPathString);
 
-            String obj = FileUtil.readOBJFile(objPath);
-            String name = objPath.getFileName().toString();
-            String hash = FileUtil.getSha256(obj);
+            String data3D = FileUtil.read3DDataFile(dataPath);
+            String name = dataPath.getFileName().toString();
+            String hash = FileUtil.getSha256(data3D);
+            ParsingFormat format = UniversalParser.getParsingFormat(dataPath);
 
-            FileUtil.createFileIfNotPresent(FileUtil.getSkinPath(hash), obj);
+            FileUtil.createFileIfNotPresent(FileUtil.getSkinPath(hash, format), data3D);
 
-            AllTheSkinsClient.options().selectedSkin = new Skin(hash, name);
+            AllTheSkinsClient.options().selectedSkin = new ClientSkin(hash, name, format);
 
             // Save the updated options:
             FileUtil.writeSave(AllTheSkinsClient.options());
@@ -77,7 +74,7 @@ public class SkinManager {
             loadSelfSkin();
 
             // Send update to server
-            BackendInteractor.setSkinOBJ(uuid, obj);
+            BackendInteractor.setSkinData(uuid, data3D);
         }
         catch(Exception ex){
             AllTheSkins.LOGGER.info("Ran into error while setting self skin: {0}", ex);
@@ -87,7 +84,7 @@ public class SkinManager {
     public static void resetSelfSkin(){
         String uuid = client.getSession().getUuidOrNull().toString();
 
-        AllTheSkinsClient.options().selectedSkin = new Skin("", "");
+        AllTheSkinsClient.options().selectedSkin = new ClientSkin();
 
         // Reload self skin
         loadSelfSkin();
@@ -96,29 +93,32 @@ public class SkinManager {
         FileUtil.writeSave(AllTheSkinsClient.options());
 
         // Send update to server
-        BackendInteractor.setSkinOBJ(uuid, "");
+        BackendInteractor.setSkinData(uuid, "");
     }
 
     public static void loadSelfSkin(){
         String uuid = client.getSession().getUuidOrNull().toString();
 
         // Set self skin to empty if we don't have a selected skin
-        if(Objects.equals(AllTheSkinsClient.options().selectedSkin.id, "")){
+        var selectedSkin = AllTheSkinsClient.options().selectedSkin;
+
+        if(Objects.equals(selectedSkin.hash, "")){
             putLookupEntry(uuid, "");
-            putCacheEntry(uuid, null);
+            putCacheEntry(uuid, null, null);
+
             return;
         }
 
         // Load self skin
         try{
-            Path objPath = FileUtil.getSkinPath(AllTheSkinsClient.options().selectedSkin.id);
-            List<Vertex> vertices = ModelNormalizer.normalize(OBJParser.parse(objPath));
+            Path data3DPath = FileUtil.getSkinPath(selectedSkin.hash, selectedSkin.format);
+            List<Vertex> vertices = ModelNormalizer.normalize(UniversalParser.parse(data3DPath, selectedSkin.format));
 
-            putLookupEntry(uuid, AllTheSkinsClient.options().selectedSkin.id);
-            putCacheEntry(uuid, vertices);
+            putLookupEntry(uuid, AllTheSkinsClient.options().selectedSkin.hash);
+            putCacheEntry(uuid, vertices, selectedSkin.format);
         }
         catch(Exception e){
-            AllTheSkins.LOGGER.info("Ran into error while loading self skin obj content: {0}", e);
+            AllTheSkins.LOGGER.info("Ran into error while loading self skin data3D content:", e);
         }
     }
 
@@ -127,7 +127,7 @@ public class SkinManager {
         // -> check local skins
         //      If not in local skins -> /files
         //          If response empty -> set entry to null
-        //          Else -> entry to deserialized obj
+        //          Else -> entry to deserialized data3D
 
         // Put uuid into cache so that we don't request for this uuid again in RenderMixin
         skinCache.put(uuid, null);
@@ -147,52 +147,53 @@ public class SkinManager {
     }
 
     private static void loadSkinIntoCache(String uuid){
-        // Load from cache
+        // Load from I/O cache
         if(FileUtil.isSkinCached(skinLookup.get(uuid)))
         {
             try {
+                Path path = FileUtil.tryGetSkinFromIOCache(skinLookup.get(uuid));
+
+                // If path == null something went horribly wrong
+                assert path != null;
+
                 List<Vertex> vertices = ModelNormalizer.normalize(
-                        OBJParser.parse(
-                                FileUtil.readOBJFile(
-                                        FileUtil.getSkinPath(
-                                                skinLookup.get(uuid)
-                                        )
-                                )
+                        UniversalParser.parse(
+                            path
                         )
                 );
 
-                putCacheEntry(uuid, vertices);
-            } catch (IOException e) {
-                putCacheEntry(uuid, null);
-                AllTheSkins.LOGGER.error("Ran into error while i/o loading skin from cache: {0}", e);
+                putCacheEntry(uuid, vertices, UniversalParser.getParsingFormat(path));
+            } catch (Exception e) {
+                putCacheEntry(uuid, null, null);
+
+                AllTheSkins.LOGGER.error("Ran into error while loading skin from I/O Cache: {0}", e);
             }
         }
         // Request from Server
         else{
-            BackendInteractor.getSkinOBJ(skinLookup.get(uuid))
-                    .thenAccept(obj -> {
-                        if(!Objects.equals(obj, "") && !Objects.equals(obj, null)){
-                            // Try saving to local Cache
-                            try {
-                                String hash = skinLookup.get(uuid);
+            BackendInteractor.getSkinData(skinLookup.get(uuid), (data3D, format) -> {
+                if(!Objects.equals(data3D, "") && !Objects.equals(data3D, null)){
+                    String hash = skinLookup.get(uuid);
 
-                                FileUtil.createFileIfNotPresent(FileUtil.getSkinPath(hash), obj);
-                            } catch (IOException e) {
-                                AllTheSkins.LOGGER.error("Ran into error while saving skin to i/o cache: {0}", e);
-                            }
+                    // Try saving to local Cache
+                    try {
+                        FileUtil.createFileIfNotPresent(FileUtil.getSkinPath(hash, format), data3D);
+                    } catch (IOException e) {
+                        AllTheSkins.LOGGER.error("Ran into error while saving skin to i/o cache: {0}", e);
+                    }
 
-                            List<Vertex> vertices = ModelNormalizer.normalize(OBJParser.parse(obj));
-                            putCacheEntry(uuid, vertices);
-                        }
-                        else{
-                            putCacheEntry(uuid, null);
-                        }
-                    });
+                    List<Vertex> vertices = ModelNormalizer.normalize(UniversalParser.parse(FileUtil.getSkinPath(hash, format)));
+                    putCacheEntry(uuid, vertices, format);
+                }
+                else{
+                    putCacheEntry(uuid, null, null);
+                }
+            });
         }
     }
 
-    public static void putCacheEntry(String uuid, @Nullable List<Vertex> vertices){
-        skinCache.put(uuid, vertices);
+    public static void putCacheEntry(String uuid, @Nullable List<Vertex> vertices, ParsingFormat format){
+        skinCache.put(uuid, new CacheSkin(vertices, format));
     }
 
     public static void putLookupEntry(String uuid, @Nullable String id){

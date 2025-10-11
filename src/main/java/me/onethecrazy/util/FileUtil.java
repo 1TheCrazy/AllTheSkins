@@ -4,11 +4,15 @@ package me.onethecrazy.util;
 import com.google.gson.Gson;
 import me.onethecrazy.AllTheSkins;
 import me.onethecrazy.util.objects.save.AllTheSkinsSave;
+import me.onethecrazy.util.parsing.ParsingFormat;
 import net.fabricmc.loader.api.FabricLoader;
+import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
@@ -21,7 +25,7 @@ public class FileUtil {
         return Files.readString(file);
     }
 
-    public static String readOBJFile(Path file) throws IOException{
+    public static String read3DDataFile(Path file) throws IOException{
         createFileIfNotPresent(file, "");
 
         return Files.readString(file);
@@ -80,8 +84,8 @@ public class FileUtil {
         return getDefaultPath().resolve("skins");
     }
 
-    public static Path getSkinPath(String skin){
-        return getSkinsPath().resolve(skin + ".obj");
+    public static Path getSkinPath(String skin, ParsingFormat format){
+        return getSkinsPath().resolve(skin + "." + format.name().toLowerCase());
     }
 
     public static String getSha256(String input){
@@ -107,8 +111,25 @@ public class FileUtil {
     }
 
     public static boolean isSkinCached(String hash){
-        Path filePath = getSkinPath(hash);
-        return doesFileExist(filePath);
+        return tryGetSkinFromIOCache(hash) != null;
+    }
+
+    public static @Nullable Path tryGetSkinFromIOCache(String hash){
+        // Iterate cached skin files to see if we already got the hash (and therefore the skin)
+        try (var stream = Files.list(getSkinsPath())) {
+            return stream
+                    .filter(Files::isRegularFile)
+                    .filter(p -> p.getFileName().startsWith(hash))
+                    .findAny()
+                    .orElseThrow();
+        } catch (Exception e) {
+            // Ignore NoSuchElementException
+            if(e instanceof IOException)
+                AllTheSkins.LOGGER.error("Failed to iterate local I/O skin cache: ", e);
+
+            // Fallback
+            return null;
+        }
     }
 
     public static boolean doesFileExist(Path filePath){

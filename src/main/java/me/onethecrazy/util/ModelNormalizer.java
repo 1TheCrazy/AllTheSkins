@@ -13,7 +13,7 @@ public class ModelNormalizer {
     public static List<Vertex> normalize(List<Vertex> vertices){
 
         // Get the height in pixel
-        Float2 pxMinMax = OBJParser.getModelHeight(vertices);
+        Float2 pxMinMax = getModelHeight(vertices);
 
         float minY = pxMinMax.v, maxY = pxMinMax.u;
         float heightPx = maxY - minY;
@@ -39,5 +39,21 @@ public class ModelNormalizer {
 
     public static List<Vertex> normalize(Optional<List<Vertex>> vertices){
         return vertices.map(ModelNormalizer::normalize).orElse(List.of());
+    }
+
+    public static Float2 getModelHeight(List<Vertex> vertices){
+        float minY = Float.POSITIVE_INFINITY,
+                maxY = Float.NEGATIVE_INFINITY;
+
+        for(Vertex v : vertices){
+            if(v.position.y < minY){
+                minY = v.position.y;
+            }
+            else if (v.position.y > maxY){
+                maxY = v.position.y;
+            }
+        }
+
+        return new Float2(maxY, minY);
     }
 }
