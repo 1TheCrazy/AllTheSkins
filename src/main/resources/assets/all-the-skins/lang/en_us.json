@@ -1,7 +1,7 @@
 {
   "gui.alltheskins.select_skin" : "Choose a skin...",
   "gui.alltheskins.title.file_too_large" : "File too large!",
-  "gui.alltheskins.description.file_too_large" : "The OBJ-File size is restricted to 5mb",
+  "gui.alltheskins.description.file_too_large" : "The File Size is restricted to 20mb",
   "gui.alltheskins.title.moderation_notice" : "Moderation Notice",
   "gui.alltheskins.description.moderation_notice" : "The skins uploaded to AllTheSkins are NOT moderated and may contain inappropriate content. By using this mod you agree that you're using the mod at your own risk.",
   "gui.alltheskins.mod_enabled" : "Enabled",

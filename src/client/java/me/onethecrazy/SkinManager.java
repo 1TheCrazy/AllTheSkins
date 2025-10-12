@@ -38,7 +38,7 @@ public class SkinManager {
 
                         long MAX_FILE_SIZE = 20L * 1024 * 1024;
 
-                        // Restrict File size to 7mb
+                        // Restrict File size to 20mb
                         if(fileSize > MAX_FILE_SIZE){
                             ToastUtil.showFileTooLargeToast();
                             return;
