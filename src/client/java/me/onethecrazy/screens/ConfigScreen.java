@@ -38,12 +38,9 @@ public class ConfigScreen extends Screen {
         skinPreviewRenderer = new SkinPreviewRenderer(getCellOriginX(), getCellOriginY(), getScreenFriendlyDimensions(), getScreenFriendlyScale());
 
         // Init Buttons
-        selectSkinButton = ButtonWidget.builder(Text.empty(), (button) -> {
-            SkinManager.pickClientSkin();
-
-            // Update Text
-            updateSelectButtonText();
-        }).dimensions(getCellOriginX(), getCellOriginY() + getScreenFriendlyDimensions() + Y_SPACING, getScreenFriendlyDimensions(), BUTTON_HEIGHT).build();
+        selectSkinButton = ButtonWidget.builder(Text.empty(),
+                (button) -> SkinManager.pickClientSkin()
+        ).dimensions(getCellOriginX(), getCellOriginY() + getScreenFriendlyDimensions() + Y_SPACING, getScreenFriendlyDimensions(), BUTTON_HEIGHT).build();
 
         resetButton = ButtonWidget.builder(
                     Text.translatable("gui.alltheskins.reset"),
@@ -76,6 +73,9 @@ public class ConfigScreen extends Screen {
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         // Render the skin preview
         skinPreviewRenderer.renderPreview(context, delta);
+
+        // Update Text
+        updateSelectButtonText();
 
         // Render the banner text
         context.drawText(textRenderer, AllTheSkinsClient.bannerText, getCellOriginX(), getCellOriginY() + getScreenFriendlyDimensions() + MARGIN, 0xFFFFFFFF, true);

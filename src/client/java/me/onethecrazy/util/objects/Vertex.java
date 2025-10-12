@@ -2,7 +2,6 @@ package me.onethecrazy.util.objects;
 
 import me.onethecrazy.AllTheSkins;
 import net.minecraft.util.Identifier;
-import org.jetbrains.annotations.Nullable;
 
 public class Vertex {
     public Float3 position;
