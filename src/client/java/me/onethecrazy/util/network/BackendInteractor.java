@@ -26,7 +26,7 @@ public class BackendInteractor {
         AllTheSkins.LOGGER.info(payload);
 
         HttpRequest req = HttpRequest.newBuilder()
-                .uri(URI.create("http://217.154.195.68:6969/getSkins"))
+                .uri(URI.create("http://localhost:6969/getSkins"))
                 .header("Content-Type", "application/json")
                 // GET doesn't usually support bodies, but I like GET for an endpoint called getSkins (duh~)
                 .method("GET", HttpRequest.BodyPublishers.ofString(payload))
@@ -60,7 +60,7 @@ public class BackendInteractor {
 
     public static void getSkinData(String hash, BiConsumer<byte[], ParsingFormat> onArrive){
         HttpRequest req = HttpRequest.newBuilder()
-                .uri(URI.create("http://217.154.195.68:6969/files/" + hash))
+                .uri(URI.create("http://localhost:6969/files/" + hash))
                 .GET()
                 .build();
 
@@ -92,7 +92,7 @@ public class BackendInteractor {
         String payload = new Gson().toJson(json);
 
         HttpRequest req = HttpRequest.newBuilder()
-                .uri(URI.create("http://217.154.195.68:6969/setSkin"))
+                .uri(URI.create("http://localhost:6969/setSkin"))
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(payload))
                 .build();
@@ -106,7 +106,7 @@ public class BackendInteractor {
 
     public static CompletableFuture<String> getBannerTextAsync() {
         HttpRequest req = HttpRequest.newBuilder()
-                .uri(URI.create("http://217.154.195.68:6969/banner"))
+                .uri(URI.create("http://localhost:6969/banner"))
                 .GET()
                 .build();
 

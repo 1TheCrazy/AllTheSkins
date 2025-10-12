@@ -7,7 +7,13 @@ import me.onethecrazy.util.objects.save.AllTheSkinsSave;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
+import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.minecraft.client.network.OtherClientPlayerEntity;
+import net.minecraft.resource.ResourceManager;
+import net.minecraft.resource.ResourceType;
+import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 
 
@@ -34,12 +40,12 @@ public class AllTheSkinsClient implements ClientModInitializer {
 		firstStartupSetup();
 		// Load Banner text
 		BackendInteractor.getBannerTextAsync().thenAccept(text -> bannerText = text);
-		// Load self skin
-		SkinManager.loadSelfSkin();
 		// Initialize Commands
 		registerCommands();
 		// Register player join world callback
 		registerPlayerJoinCallback();
+		// Queue a self skin load
+		queueLoadSelf();
 	}
 
 	public void registerCommands(){
@@ -65,5 +71,12 @@ public class AllTheSkinsClient implements ClientModInitializer {
 		if(isFirstStartup)
 			// Create Paths
 			FileUtil.createPaths();
+	}
+
+	public void queueLoadSelf(){
+		ClientLifecycleEvents.CLIENT_STARTED.register(client -> {
+			// Load self skin
+			SkinManager.loadSelfSkin();
+		});
 	}
 }
