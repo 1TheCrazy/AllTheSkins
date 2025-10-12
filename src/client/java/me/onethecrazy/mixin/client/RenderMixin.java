@@ -121,7 +121,8 @@ public abstract class RenderMixin <T extends LivingEntity, S extends LivingEntit
     }
 
     // --- Stolen and modified from net.minecraft.client.render.entity.EntityRenderer#renderLabelIfPresent ---
-    private void renderNameTagIfShouldRender(PlayerEntityRenderState state,Text text, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light){
+    @Unique
+    private void renderNameTagIfShouldRender(PlayerEntityRenderState state, Text text, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light){
         if (state.displayName == null)
             return;
 

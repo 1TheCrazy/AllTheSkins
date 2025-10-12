@@ -35,7 +35,7 @@ public class Vertex {
         this.color = color;
     }
 
-    public Vertex(Float3 position, Float3 normals, Float2 textureUV, @Nullable Identifier texture, int color){
+    public Vertex(Float3 position, Float3 normals, Float2 textureUV, Identifier texture, int color){
         this.position = position;
         this.normals = normals;
         this.textureUV = textureUV;
