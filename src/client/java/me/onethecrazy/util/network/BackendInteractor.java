@@ -2,8 +2,8 @@ package me.onethecrazy.util.network;
 
 import com.google.gson.*;
 import me.onethecrazy.AllTheSkins;
+import me.onethecrazy.util.objects.LookupSkin;
 import me.onethecrazy.util.parsing.ParsingFormat;
-import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -11,19 +11,17 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class BackendInteractor {
-    private static HttpClient client = HttpClient.newHttpClient();
+    private static final HttpClient client = HttpClient.newHttpClient();
 
-    public static CompletableFuture<Map<String, String>> getSkinIDs(List<String> uuids){
+    public static CompletableFuture<Map<String, LookupSkin>> getSkinIDs(List<String> uuids){
         Map<String, List<String>> wrapper = new HashMap<>();
         wrapper.put("uuids", uuids);
 
         Gson gson = new Gson();
         String payload = gson.toJson(wrapper);
-
-        AllTheSkins.LOGGER.info(payload);
 
         HttpRequest req = HttpRequest.newBuilder()
                 .uri(URI.create("http://localhost:6969/getSkins"))
@@ -38,41 +36,38 @@ public class BackendInteractor {
 
                     JsonArray array = JsonParser.parseString(body).getAsJsonArray();
 
-                    Map<String,String> result = new HashMap<>();
+                    Map<String,LookupSkin> result = new HashMap<>();
 
                     for(JsonElement elmt : array){
                         JsonObject obj = elmt.getAsJsonObject();
 
                         String uuid = obj.get("uuid").getAsString();
                         String id = obj.get("id").getAsString();
+                        ParsingFormat format = ParsingFormat.valueOf(obj.get("format").getAsString().toUpperCase());
 
-                        result.put(uuid, id);
+                        result.put(uuid, new LookupSkin(id, format));
                     }
 
                     return result;
                 })
                 .exceptionally(ex -> {
-                    AllTheSkins.LOGGER.error("Error while getting Skin Ids: {0}", ex);
+                    AllTheSkins.LOGGER.error("Error while getting Skin Ids: ", ex);
                     return Map.of();
                 });
     }
 
 
-    public static void getSkinData(String hash, BiConsumer<byte[], ParsingFormat> onArrive){
+    public static void getSkinData(LookupSkin skin, Consumer<byte[]> onArrive){
         HttpRequest req = HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:6969/files/" + hash))
+                .uri(URI.create("http://localhost:6969/files/" + skin.hash + "." + skin.format.name().toLowerCase()))
                 .GET()
                 .build();
 
         client.sendAsync(req, HttpResponse.BodyHandlers.ofString())
                 .thenApply(res -> {
-                    var body  = JsonParser.parseString(res.body()).getAsJsonObject();
+                    var data3D = Base64.getDecoder().decode(res.body());
 
-                    var data3D = Base64.getDecoder().decode(body.get("data3d").getAsString());
-                    var formatString = body.get("format").getAsString();
-                    var format = Objects.equals(formatString, "") ? null : ParsingFormat.valueOf(formatString);
-
-                    onArrive.accept(data3D, format);
+                    onArrive.accept(data3D);
 
                     return null;
                 })
@@ -87,7 +82,12 @@ public class BackendInteractor {
         // Create Http Body
         JsonObject json = new JsonObject();
         json.addProperty("uuid", uuid);
-        json.addProperty("obj", Base64.getEncoder().encodeToString(data3d));
+
+        JsonObject data3dBody = new JsonObject();
+        data3dBody.addProperty("base64", Base64.getEncoder().encodeToString(data3d));
+        data3dBody.addProperty("format", format.name().toLowerCase());
+
+        json.add("data3d", data3dBody);
 
         String payload = new Gson().toJson(json);
 

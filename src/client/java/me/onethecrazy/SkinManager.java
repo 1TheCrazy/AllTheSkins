@@ -3,6 +3,7 @@ package me.onethecrazy;
 import me.onethecrazy.util.*;
 import me.onethecrazy.util.network.BackendInteractor;
 import me.onethecrazy.util.objects.CacheSkin;
+import me.onethecrazy.util.objects.LookupSkin;
 import me.onethecrazy.util.objects.Vertex;
 import me.onethecrazy.util.objects.save.ClientSkin;
 import me.onethecrazy.util.parsing.ParsingFormat;
@@ -19,7 +20,7 @@ import java.util.Map;
 import java.util.Objects;
 
 public class SkinManager {
-    public static Map<String, @Nullable String> skinLookup = new HashMap<>();
+    public static Map<String, LookupSkin> skinLookup = new HashMap<>();
     public static Map<String, CacheSkin> skinCache = new HashMap<>();
 
     private static final MinecraftClient client = MinecraftClient.getInstance();
@@ -104,7 +105,7 @@ public class SkinManager {
         var selectedSkin = AllTheSkinsClient.options().selectedSkin;
 
         if(Objects.equals(selectedSkin.hash, "")){
-            putLookupEntry(uuid, "");
+            putLookupEntry(uuid, new LookupSkin("", null));
             putCacheEntry(uuid, null, null);
 
             return;
@@ -115,7 +116,7 @@ public class SkinManager {
             Path data3DPath = FileUtil.getSkinPath(selectedSkin.hash, selectedSkin.format);
             List<Vertex> vertices = ModelNormalizer.normalize(UniversalParser.parse(data3DPath, selectedSkin.format));
 
-            putLookupEntry(uuid, AllTheSkinsClient.options().selectedSkin.hash);
+            putLookupEntry(uuid, new LookupSkin(selectedSkin.hash, selectedSkin.format));
             putCacheEntry(uuid, vertices, selectedSkin.format);
         }
         catch(Exception e){
@@ -149,13 +150,10 @@ public class SkinManager {
 
     private static void loadSkinIntoCache(String uuid){
         // Load from I/O cache
-        if(FileUtil.isSkinCached(skinLookup.get(uuid)))
+        if(FileUtil.isSkinCached(skinLookup.get(uuid).hash))
         {
             try {
-                Path path = FileUtil.tryGetSkinFromIOCache(skinLookup.get(uuid));
-
-                // If path == null something went horribly wrong
-                assert path != null;
+                Path path = FileUtil.getSkinPath(skinLookup.get(uuid).hash, skinLookup.get(uuid).format);
 
                 List<Vertex> vertices = ModelNormalizer.normalize(
                         UniversalParser.parse(
@@ -163,7 +161,7 @@ public class SkinManager {
                         )
                 );
 
-                putCacheEntry(uuid, vertices, UniversalParser.getParsingFormat(path));
+                putCacheEntry(uuid, vertices, skinLookup.get(uuid).format);
             } catch (Exception e) {
                 putCacheEntry(uuid, null, null);
 
@@ -172,19 +170,20 @@ public class SkinManager {
         }
         // Request from Server
         else{
-            BackendInteractor.getSkinData(skinLookup.get(uuid), (data3D, format) -> {
+            BackendInteractor.getSkinData(skinLookup.get(uuid), (data3D) -> {
                 if(data3D.length != 0){
-                    String hash = skinLookup.get(uuid);
+                    var lookupResult = skinLookup.get(uuid);
+                    String hash = lookupResult.hash;
 
                     // Try saving to local Cache
                     try {
-                        FileUtil.createFileIfNotPresent(FileUtil.getSkinPath(hash, format), data3D);
+                        FileUtil.createFileIfNotPresent(FileUtil.getSkinPath(hash, lookupResult.format), data3D);
                     } catch (IOException e) {
-                        AllTheSkins.LOGGER.error("Ran into error while saving skin to i/o cache: {0}", e);
+                        AllTheSkins.LOGGER.error("Ran into error while saving skin to I/O cache: ", e);
                     }
 
-                    List<Vertex> vertices = ModelNormalizer.normalize(UniversalParser.parse(FileUtil.getSkinPath(hash, format)));
-                    putCacheEntry(uuid, vertices, format);
+                    List<Vertex> vertices = ModelNormalizer.normalize(UniversalParser.parse(FileUtil.getSkinPath(hash, lookupResult.format)));
+                    putCacheEntry(uuid, vertices, lookupResult.format);
                 }
                 else{
                     putCacheEntry(uuid, null, null);
@@ -197,7 +196,7 @@ public class SkinManager {
         skinCache.put(uuid, new CacheSkin(vertices, format));
     }
 
-    public static void putLookupEntry(String uuid, @Nullable String id){
-        skinLookup.put(uuid, id);
+    public static void putLookupEntry(String uuid, LookupSkin lookupSkin){
+        skinLookup.put(uuid, lookupSkin);
     }
 }
