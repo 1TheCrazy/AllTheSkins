@@ -15,6 +15,9 @@ import java.util.function.Consumer;
 
 public class BackendInteractor {
     private static final HttpClient client = HttpClient.newHttpClient();
+    private static final String BASE_URL = "http://217.154.195.68:";
+    private static final String PORT = "6969";
+    private static final String URL = BASE_URL + PORT;
 
     public static CompletableFuture<Map<String, LookupSkin>> getSkinIDs(List<String> uuids){
         Map<String, List<String>> wrapper = new HashMap<>();
@@ -24,7 +27,7 @@ public class BackendInteractor {
         String payload = gson.toJson(wrapper);
 
         HttpRequest req = HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:6969/getSkins"))
+                .uri(URI.create(URL + "/getSkins"))
                 .header("Content-Type", "application/json")
                 // GET doesn't usually support bodies, but I like GET for an endpoint called getSkins (duh~)
                 .method("GET", HttpRequest.BodyPublishers.ofString(payload))
@@ -59,7 +62,7 @@ public class BackendInteractor {
 
     public static void getSkinData(LookupSkin skin, Consumer<byte[]> onArrive){
         HttpRequest req = HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:6969/files/" + skin.hash + "." + skin.format.name().toLowerCase()))
+                .uri(URI.create(URL + "/files/" + skin.hash + "." + skin.format.name().toLowerCase()))
                 .GET()
                 .build();
 
@@ -92,7 +95,7 @@ public class BackendInteractor {
         String payload = new Gson().toJson(json);
 
         HttpRequest req = HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:6969/setSkin"))
+                .uri(URI.create(URL + "/setSkin"))
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(payload))
                 .build();
@@ -106,7 +109,7 @@ public class BackendInteractor {
 
     public static CompletableFuture<String> getBannerTextAsync() {
         HttpRequest req = HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:6969/banner"))
+                .uri(URI.create(URL + "/banner"))
                 .GET()
                 .build();
 
