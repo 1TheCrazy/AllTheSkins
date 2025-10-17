@@ -66,11 +66,9 @@ public class BackendInteractor {
                 .GET()
                 .build();
 
-        client.sendAsync(req, HttpResponse.BodyHandlers.ofString())
+        client.sendAsync(req, HttpResponse.BodyHandlers.ofByteArray())
                 .thenApply(res -> {
-                    var data3D = Base64.getDecoder().decode(res.body());
-
-                    onArrive.accept(data3D);
+                    onArrive.accept(res.body());
 
                     return null;
                 })
