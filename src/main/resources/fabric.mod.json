@@ -14,7 +14,7 @@
 	},
 	"license": "MIT",
 	"icon": "assets/all-the-skins/icon.png",
-	"environment": "*",
+	"environment": "client",
 	"entrypoints": {
 		"main": [
 			"me.onethecrazy.AllTheSkins"
@@ -38,8 +38,5 @@
 		"minecraft": "~1.21.7",
 		"java": ">=21",
 		"fabric-api": "*"
-	},
-	"suggests": {
-		"another-mod": "*"
 	}
 }
