@@ -50,7 +50,8 @@ public class SkinManager {
                         return;
                     }
 
-                    SkinManager.selectSelfSkin(Path.of(f));
+                    // Execute on Render Thread
+                    MinecraftClient.getInstance().send(() -> SkinManager.selectSelfSkin(Path.of(f)));
                 });
     }
 
@@ -133,15 +134,12 @@ public class SkinManager {
 
         // Put uuid into cache so that we don't request for this uuid again in RenderMixin
         skinCache.put(uuid, null);
-        skinLookup.put(uuid, null);
+        skinLookup.put(uuid, new LookupSkin("", null));
 
         // Player was never encountered before
         BackendInteractor.getSkinIDs(List.of(uuid))
                 .thenAccept(map -> {
-                    if(!map.containsKey(uuid))
-                        putLookupEntry(uuid, null);
-                    else
-                        putLookupEntry(uuid, map.get(uuid));
+                    putLookupEntry(uuid, map.getOrDefault(uuid, null));
 
                     // We don't have the skin loaded (or want it to be updated)
                     loadSkinIntoCache(uuid);
