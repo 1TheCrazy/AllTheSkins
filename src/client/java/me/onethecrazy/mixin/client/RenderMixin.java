@@ -3,6 +3,7 @@ package me.onethecrazy.mixin.client;
 import me.onethecrazy.AllTheSkins;
 import me.onethecrazy.AllTheSkinsClient;
 import me.onethecrazy.SkinManager;
+import me.onethecrazy.util.LivingEntityRenderExtension;
 import me.onethecrazy.screens.ConfigScreen;
 import me.onethecrazy.util.objects.CacheSkin;
 import me.onethecrazy.util.objects.Vertex;
@@ -33,7 +34,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.List;
 
 @Mixin(LivingEntityRenderer.class)
-public abstract class RenderMixin <T extends LivingEntity, S extends LivingEntityRenderState>{
+public abstract class RenderMixin <T extends LivingEntity, S extends LivingEntityRenderState> implements LivingEntityRenderExtension {
     @Unique private AbstractClientPlayerEntity player;
 
     @Inject(method="render(Lnet/minecraft/client/render/entity/state/LivingEntityRenderState;Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V", at=@At("HEAD"), cancellable = true)
@@ -58,7 +59,6 @@ public abstract class RenderMixin <T extends LivingEntity, S extends LivingEntit
                 else
                     return;
             }
-
 
             // We have never encountered this user before (we don't know whether he has a skin or not) or we have never loaded the skin of this user
             if(!SkinManager.skinLookup.containsKey(uuid)){
@@ -114,6 +114,15 @@ public abstract class RenderMixin <T extends LivingEntity, S extends LivingEntit
         }
     }
 
+    @Unique
+    // Used to reset the rendered Player, since the flow is as following:
+    // Update State (set player for UUID-getting) -> Render immediately -> Same process for other entity
+    // To now reset the player we use this method.
+    // This is used when rendering the Player Skin Preview.
+    public void all_the_skins$setPlayerAsNull(){
+        player = null;
+    }
+
     // updateRenderState is called every frame BEFORE render, so we're guaranteed to have a value in player
     @Inject(method="updateRenderState(Lnet/minecraft/entity/LivingEntity;Lnet/minecraft/client/render/entity/state/LivingEntityRenderState;F)V", at=@At("HEAD"))
     private void onUpdateRenderState(T livingEntity, S livingEntityRenderState, float f, CallbackInfo ci){
@@ -126,7 +135,6 @@ public abstract class RenderMixin <T extends LivingEntity, S extends LivingEntit
     private void renderNameTagIfShouldRender(PlayerEntityRenderState state, Text text, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light){
         if (state.displayName == null)
             return;
-
 
         Vec3d vec3d = state.nameLabelPos;
         if (vec3d != null) {

@@ -1,8 +1,11 @@
 package me.onethecrazy.screens.rendering;
 
 import com.mojang.authlib.GameProfile;
+import me.onethecrazy.util.LivingEntityRenderExtension;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.render.entity.EntityRenderDispatcher;
+import net.minecraft.client.render.entity.PlayerEntityRenderer;
 import net.minecraft.client.render.entity.state.PlayerEntityRenderState;
 import net.minecraft.entity.EntityType;
 import org.joml.Math;
@@ -38,6 +41,9 @@ public class SkinPreviewRenderer {
         // Tick the animation state
         skinPreviewRenderState.age += deltaTicks;
 
+        // Reset Player to render the correct Skin
+        resetPlayerOnLivingEntityRenderer();
+
         // Render the Preview of the player skin
         ctx.addEntity(
                 skinPreviewRenderState,
@@ -59,5 +65,14 @@ public class SkinPreviewRenderer {
     public void addRotation(float yaw, float pitch){
         this.yaw += yaw;
         this.pitch += pitch;
+    }
+
+    private void resetPlayerOnLivingEntityRenderer(){
+        MinecraftClient mc = MinecraftClient.getInstance();
+        EntityRenderDispatcher disp = mc.getEntityRenderDispatcher();
+
+        PlayerEntityRenderer playerRenderer = (PlayerEntityRenderer) disp.getRenderer(skinPreviewRenderState);
+
+        ((LivingEntityRenderExtension)playerRenderer).all_the_skins$setPlayerAsNull();
     }
 }
