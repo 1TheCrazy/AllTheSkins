@@ -4,31 +4,26 @@ import me.onethecrazy.AllTheSkins;
 import me.onethecrazy.AllTheSkinsClient;
 import me.onethecrazy.SkinManager;
 import me.onethecrazy.screens.ConfigScreen;
+import me.onethecrazy.util.objects.CacheSkin;
 import me.onethecrazy.util.objects.Vertex;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.render.*;
-import net.minecraft.client.render.entity.EntityRenderer;
-import net.minecraft.client.render.entity.EntityRendererFactory;
 import net.minecraft.client.render.entity.LivingEntityRenderer;
-import net.minecraft.client.render.entity.model.EntityModel;
 import net.minecraft.client.render.entity.state.LivingEntityRenderState;
 import net.minecraft.client.render.entity.state.PlayerEntityRenderState;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityPose;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.text.StringVisitable;
 import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.RotationAxis;
 import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
-import org.joml.Quaternionfc;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -66,13 +61,19 @@ public abstract class RenderMixin <T extends LivingEntity, S extends LivingEntit
 
 
             // We have never encountered this user before (we don't know whether he has a skin or not) or we have never loaded the skin of this user
-            if(!SkinManager.skinLookup.containsKey(uuid) || !SkinManager.skinCache.containsKey(uuid)){
+            if(!SkinManager.skinLookup.containsKey(uuid)){
                 AllTheSkins.LOGGER.info("Loading skin for uuid: {}", uuid);
                 SkinManager.loadSkin(uuid);
                 return;
             }
 
-            @Nullable List<Vertex> vertices = SkinManager.skinCache.get(uuid).vertices;
+            @Nullable CacheSkin cacheResult = SkinManager.skinCache.get(uuid);
+
+            // We don't have the skin data yet
+            if(cacheResult == null)
+                return;
+
+            @Nullable List<Vertex> vertices = cacheResult.vertices;
 
             // User didn't select a skin
             if(vertices == null || vertices.isEmpty())
