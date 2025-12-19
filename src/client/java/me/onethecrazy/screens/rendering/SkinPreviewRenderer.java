@@ -4,6 +4,7 @@ import com.mojang.authlib.GameProfile;
 import me.onethecrazy.util.LivingEntityRenderExtension;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.render.LightmapTextureManager;
 import net.minecraft.client.render.entity.EntityRenderManager;
 import net.minecraft.client.render.entity.PlayerEntityRenderer;
 import net.minecraft.client.render.entity.state.PlayerEntityRenderState;
@@ -29,6 +30,7 @@ public class SkinPreviewRenderer {
         skinPreviewRenderState.entityType = EntityType.PLAYER;
         skinPreviewRenderState.squaredDistanceToCamera = 1;
         skinPreviewRenderState.x = skinPreviewRenderState.y = skinPreviewRenderState.z = 0.0;
+        skinPreviewRenderState.light = LightmapTextureManager.MAX_LIGHT_COORDINATE;
         // We just grab a default skin, so just fuck that
 
         this.x = x;
