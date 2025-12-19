@@ -3,6 +3,7 @@ package me.onethecrazy.screens;
 import me.onethecrazy.AllTheSkinsClient;
 import me.onethecrazy.SkinManager;
 import me.onethecrazy.screens.rendering.SkinPreviewRenderer;
+import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
@@ -88,28 +89,28 @@ public class ConfigScreen extends Screen {
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (button == 0 && isInsideCell(mouseX, mouseY)) {
+    public boolean mouseClicked(Click click, boolean doubled) {
+        if (click.button() == 0 && isInsideCell(click.x(), click.y())) {
             rotating = true;
             return true; // start drag mode
         }
 
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(click, doubled);
     }
 
     @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
-        if (rotating && button == 0) {
+    public boolean mouseReleased(Click click) {
+        if (rotating && click.x() == 0) {
             rotating = false;
             return true; // stop rotation mode
         }
 
-        return super.mouseReleased(mouseX, mouseY, button);
+        return super.mouseReleased(click);
     }
 
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
-        if (rotating && button == 0) {
+    public boolean mouseDragged(Click click, double deltaX, double deltaY) {
+        if (rotating && click.button() == 0) {
             // convert mouse motion to yaw/pitch deltas
             float yawDelta   = (float) (deltaX * YAW_SENS);
             float pitchDelta = (float) (-deltaY * PITCH_SENS);
@@ -119,7 +120,7 @@ public class ConfigScreen extends Screen {
             return true; // consume drag
         }
 
-        return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
+        return super.mouseDragged(click, deltaX, deltaY);
     }
 
     // Position Helpers

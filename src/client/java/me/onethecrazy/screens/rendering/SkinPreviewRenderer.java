@@ -4,7 +4,7 @@ import com.mojang.authlib.GameProfile;
 import me.onethecrazy.util.LivingEntityRenderExtension;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.render.entity.EntityRenderDispatcher;
+import net.minecraft.client.render.entity.EntityRenderManager;
 import net.minecraft.client.render.entity.PlayerEntityRenderer;
 import net.minecraft.client.render.entity.state.PlayerEntityRenderState;
 import net.minecraft.entity.EntityType;
@@ -29,7 +29,7 @@ public class SkinPreviewRenderer {
         skinPreviewRenderState.entityType = EntityType.PLAYER;
         skinPreviewRenderState.squaredDistanceToCamera = 1;
         skinPreviewRenderState.x = skinPreviewRenderState.y = skinPreviewRenderState.z = 0.0;
-        skinPreviewRenderState.skinTextures = mc.getSkinProvider().getSkinTextures(playerProfile);
+        // We just grab a default skin, so just fuck that
 
         this.x = x;
         this.y = y;
@@ -59,7 +59,7 @@ public class SkinPreviewRenderer {
         );
 
         // Render the border where the Mesh is placed inside
-        ctx.drawBorder(x, y, dimensions, dimensions, 0xFFFFFFFF);
+        drawBorder(x, y, dimensions, ctx);
     }
 
     public void addRotation(float yaw, float pitch){
@@ -69,10 +69,19 @@ public class SkinPreviewRenderer {
 
     private void resetPlayerOnLivingEntityRenderer(){
         MinecraftClient mc = MinecraftClient.getInstance();
-        EntityRenderDispatcher disp = mc.getEntityRenderDispatcher();
+        EntityRenderManager disp = mc.getEntityRenderDispatcher();
 
         PlayerEntityRenderer playerRenderer = (PlayerEntityRenderer) disp.getRenderer(skinPreviewRenderState);
 
         ((LivingEntityRenderExtension)playerRenderer).all_the_skins$setPlayerAsNull();
+    }
+
+    private static void drawBorder(int x, int y, int dimensions, DrawContext ctx){
+        int color = 0xFFFFFFFF;
+
+        ctx.drawHorizontalLine(x, x + dimensions, y, color);
+        ctx.drawHorizontalLine(x, x + dimensions, y + dimensions, color);
+        ctx.drawVerticalLine(x, y, y + dimensions, color);
+        ctx.drawVerticalLine(x + dimensions, y, y + dimensions, color);
     }
 }

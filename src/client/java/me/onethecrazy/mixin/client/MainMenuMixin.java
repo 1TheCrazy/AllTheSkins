@@ -7,6 +7,7 @@ import me.onethecrazy.screens.ConfigScreen;
 import me.onethecrazy.screens.rendering.SkinPreviewRenderer;
 import me.onethecrazy.util.ToastUtil;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.Click;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.TitleScreen;
@@ -61,9 +62,9 @@ public abstract class MainMenuMixin extends Screen{
     }
 
     @Inject(method = "mouseClicked", at=@At("HEAD"), cancellable = true)
-    private void onMouseClicked(double mouseX, double mouseY, int button, CallbackInfoReturnable<Boolean> cir){
+    private void onMouseClicked(Click click, boolean doubled, CallbackInfoReturnable<Boolean> cir){
         // If we're inside the skin cell, open config screen
-        if(mouseX > getCellOriginX() && mouseX < getCellOriginX() + SKIN_CELL_DIMENSIONS && mouseY > getCellOriginY() && mouseY < getCellOriginY() + SKIN_CELL_DIMENSIONS){
+        if(click.x() > getCellOriginX() && click.x() < getCellOriginX() + SKIN_CELL_DIMENSIONS && click.y() > getCellOriginY() && click.y() < getCellOriginY() + SKIN_CELL_DIMENSIONS){
             MinecraftClient.getInstance().setScreen(new ConfigScreen());
 
             // We handled the click

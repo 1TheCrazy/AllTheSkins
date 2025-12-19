@@ -8,21 +8,19 @@ import me.onethecrazy.screens.ConfigScreen;
 import me.onethecrazy.util.objects.CacheSkin;
 import me.onethecrazy.util.objects.Vertex;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.render.*;
+import net.minecraft.client.render.command.OrderedRenderCommandQueue;
 import net.minecraft.client.render.entity.LivingEntityRenderer;
 import net.minecraft.client.render.entity.state.LivingEntityRenderState;
 import net.minecraft.client.render.entity.state.PlayerEntityRenderState;
+import net.minecraft.client.render.state.CameraRenderState;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.EntityPose;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.text.StringVisitable;
-import net.minecraft.text.Text;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.RotationAxis;
-import net.minecraft.util.math.Vec3d;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Mixin;
@@ -37,8 +35,8 @@ import java.util.List;
 public abstract class RenderMixin <T extends LivingEntity, S extends LivingEntityRenderState> implements LivingEntityRenderExtension {
     @Unique private AbstractClientPlayerEntity player;
 
-    @Inject(method="render(Lnet/minecraft/client/render/entity/state/LivingEntityRenderState;Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumerProvider;I)V", at=@At("HEAD"), cancellable = true)
-    private void onPlayerRender(LivingEntityRenderState state, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int light, CallbackInfo ci){
+    @Inject(method="render(Lnet/minecraft/client/render/entity/state/LivingEntityRenderState;Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/command/OrderedRenderCommandQueue;Lnet/minecraft/client/render/state/CameraRenderState;)V", at=@At("HEAD"), cancellable = true)
+    private void onPlayerRender(S state, MatrixStack matrixStack, OrderedRenderCommandQueue queue, CameraRenderState cameraRenderState, CallbackInfo ci){
         // We only want to hook the player rendering
         if(state instanceof PlayerEntityRenderState playerState){
             if(!AllTheSkinsClient.options().isEnabled)
@@ -91,25 +89,41 @@ public abstract class RenderMixin <T extends LivingEntity, S extends LivingEntit
             }
 
             // Render Nametag
-            renderNameTagIfShouldRender((PlayerEntityRenderState) state, state.displayName, matrixStack, vertexConsumerProvider, light);
+            renderNameTagIfShouldRender(state, matrixStack, queue, cameraRenderState);
 
             // Apply player Yaw
             float rot = playerState.relativeHeadYaw + state.bodyYaw;
             matrixStack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-rot));
 
             // Get Matrices
-            MatrixStack.Entry entry = matrixStack.peek();
-            Matrix4f matrix = entry.getPositionMatrix();
+            java.util.Map<net.minecraft.util.Identifier, java.util.List<Vertex>> byTex = new java.util.HashMap<>();
+            for (Vertex v : vertices) {
+                byTex.computeIfAbsent(v.texture, __ -> new java.util.ArrayList<>()).add(v);
+            }
 
-            for(Vertex v : vertices){
-                RenderLayer layer = RenderLayer.getEntityCutoutNoCull(v.texture);
-                VertexConsumer buffer = vertexConsumerProvider.getBuffer(layer);
+            // Use batching queue order 0 (default)
+            var batching = queue.getBatchingQueue(0);
 
-                buffer.vertex(matrix, v.position.x, v.position.y, v.position.z).color(v.color).texture(v.textureUV.u, v.textureUV.v).overlay(OverlayTexture.DEFAULT_UV).light(light).normal(entry, v.normals.x, v.normals.y, v.normals.z);
+            for (var e : byTex.entrySet()) {
+                var tex = e.getKey();
+                var vertsForTex = e.getValue();
+
+                RenderLayer layer = RenderLayer.getEntityCutoutNoCull(tex);
+
+                batching.submitCustom(matrixStack, layer, (MatrixStack.Entry entry, VertexConsumer vc) -> {
+                    Matrix4f posMat = entry.getPositionMatrix();
+                    for (Vertex v : vertsForTex) {
+                        vc.vertex(posMat, v.position.x, v.position.y, v.position.z)
+                                .color(v.color)
+                                .texture(v.textureUV.u, v.textureUV.v)
+                                .overlay(OverlayTexture.DEFAULT_UV)
+                                .light(state.light)
+                                .normal(entry, v.normals.x, v.normals.y, v.normals.z);
+                    }
+                });
             }
 
             matrixStack.pop();
-
             ci.cancel();
         }
     }
@@ -132,28 +146,8 @@ public abstract class RenderMixin <T extends LivingEntity, S extends LivingEntit
 
     // --- Stolen and modified from net.minecraft.client.render.entity.EntityRenderer#renderLabelIfPresent ---
     @Unique
-    private void renderNameTagIfShouldRender(PlayerEntityRenderState state, Text text, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light){
-        if (state.displayName == null)
-            return;
-
-        Vec3d vec3d = state.nameLabelPos;
-        if (vec3d != null) {
-            boolean bl = !state.sneaking;
-            int i = "deadmau5".equals(text.getString()) ? -10 : 0;
-            matrices.push();
-            matrices.translate(vec3d.x, vec3d.y + 0.5, vec3d.z);
-            matrices.multiply(MinecraftClient.getInstance().getEntityRenderDispatcher().getRotation());
-            matrices.scale(0.025F, -0.025F, 0.025F);
-            Matrix4f matrix4f = matrices.peek().getPositionMatrix();
-            TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
-            float f = (float)(-textRenderer.getWidth((StringVisitable)text)) / 2.0F;
-            int j = (int)(MinecraftClient.getInstance().options.getTextBackgroundOpacity(0.25F) * 255.0F) << 24;
-            textRenderer.draw(text, f, (float)i, -2130706433, false, matrix4f, vertexConsumers, bl ? TextRenderer.TextLayerType.SEE_THROUGH : TextRenderer.TextLayerType.NORMAL, j, light);
-            if (bl) {
-                textRenderer.draw((Text)text, f, (float)i, -1, false, matrix4f, vertexConsumers, TextRenderer.TextLayerType.NORMAL, 0, LightmapTextureManager.applyEmission(light, 2));
-            }
-
-            matrices.pop();
-        }
+    private void renderNameTagIfShouldRender(S state, MatrixStack matrices, OrderedRenderCommandQueue queue, CameraRenderState cameraRenderState){
+        if (state.displayName != null)
+            queue.submitLabel(matrices, state.nameLabelPos, 0, state.displayName, !state.sneaking, state.light, state.squaredDistanceToCamera, cameraRenderState);
     }
 }

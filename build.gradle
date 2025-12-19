@@ -67,7 +67,7 @@ dependencies {
 	runtimeOnly "org.lwjgl:lwjgl-nfd:${nfdVersion}:natives-macos-arm64"
 
 	// Mod Menu
-	modApi "maven.modrinth:modmenu:15.0.0-beta.3"
+	modApi "maven.modrinth:modmenu:16.0.0-rc.1"
 }
 
 remapJar {
