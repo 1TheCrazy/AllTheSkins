@@ -21,10 +21,6 @@ public class SkinPreviewRenderer {
     private float yaw, pitch = 0;
 
     public SkinPreviewRenderer(int x, int y, int dimensions, float scale){
-        var mc = MinecraftClient.getInstance();
-        var session = mc.getSession();
-        var playerProfile = new GameProfile(session.getUuidOrNull(), session.getUsername());
-
         // Init render state
         skinPreviewRenderState = new PlayerEntityRenderState();
         skinPreviewRenderState.entityType = EntityType.PLAYER;
