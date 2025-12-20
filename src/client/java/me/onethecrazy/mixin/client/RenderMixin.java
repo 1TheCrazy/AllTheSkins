@@ -13,6 +13,7 @@ import net.minecraft.client.network.AbstractClientPlayerEntity;
 import net.minecraft.client.render.*;
 import net.minecraft.client.render.command.OrderedRenderCommandQueue;
 import net.minecraft.client.render.entity.LivingEntityRenderer;
+import net.minecraft.client.render.entity.model.EntityModel;
 import net.minecraft.client.render.entity.state.LivingEntityRenderState;
 import net.minecraft.client.render.entity.state.PlayerEntityRenderState;
 import net.minecraft.client.render.state.CameraRenderState;
@@ -24,6 +25,7 @@ import net.minecraft.util.math.RotationAxis;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -33,6 +35,8 @@ import java.util.List;
 
 @Mixin(LivingEntityRenderer.class)
 public abstract class RenderMixin <T extends LivingEntity, S extends LivingEntityRenderState> implements LivingEntityRenderExtension {
+    @Shadow protected EntityModel model;
+
     @Unique private AbstractClientPlayerEntity player;
 
     @Inject(method="render(Lnet/minecraft/client/render/entity/state/LivingEntityRenderState;Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/command/OrderedRenderCommandQueue;Lnet/minecraft/client/render/state/CameraRenderState;)V", at=@At("HEAD"), cancellable = true)
@@ -108,7 +112,7 @@ public abstract class RenderMixin <T extends LivingEntity, S extends LivingEntit
                 var tex = e.getKey();
                 var vertsForTex = e.getValue();
 
-                RenderLayer layer = RenderLayer.getEntityCutoutNoCull(tex);
+                var layer = model.getLayer(tex);
 
                 batching.submitCustom(matrixStack, layer, (MatrixStack.Entry entry, VertexConsumer vc) -> {
                     Matrix4f posMat = entry.getPositionMatrix();
