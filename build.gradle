@@ -58,7 +58,7 @@ dependencies {
 	include implementation ("de.javagl:jgltf-impl-v2:2.0.4")
 
 	// --- For Dev Env ---
-	modRuntimeOnly "me.djtheredstoner:DevAuth-fabric:1.2.1"
+	modRuntimeOnly "me.djtheredstoner:DevAuth-fabric:1.2.2"
 	runtimeOnly "org.lwjgl:lwjgl-nfd:${nfdVersion}:natives-windows"
 	runtimeOnly "org.lwjgl:lwjgl-nfd:${nfdVersion}:natives-windows-arm64"
 	runtimeOnly "org.lwjgl:lwjgl-nfd:${nfdVersion}:natives-linux"
@@ -67,7 +67,7 @@ dependencies {
 	runtimeOnly "org.lwjgl:lwjgl-nfd:${nfdVersion}:natives-macos-arm64"
 
 	// Mod Menu
-	modApi "maven.modrinth:modmenu:16.0.0-rc.1"
+	modApi "maven.modrinth:modmenu:17.0.0-beta.1"
 }
 
 remapJar {
