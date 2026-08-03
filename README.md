@@ -1,6 +1,6 @@
 [![Support on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/1TheCrazy)
 
-# AllTheTotems
+# AllTheSkins
 **Use any 3D model as your Minecraft skin.**
 
 ## Overview
